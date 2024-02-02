@@ -1,11 +1,22 @@
-use std::env;
+use structopt::StructOpt;
+
+#[derive(StructOpt)]
+struct Cli {
+    #[structopt(subcommand)]
+    cmd: Command,
+}
+
+#[derive(StructOpt)]
+enum Command {
+    Print,
+    // Add other commands here
+}
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let args = Cli::from_args();
 
-    if args.len() > 1 && args[1] == "print" {
-        println!("Hello, World!");
-    } else {
-        println!("Unknown command");
+    match args.cmd {
+        Command::Print => println!("Hello, World!"),
+        // Handle other commands here
     }
 }
