@@ -8,15 +8,19 @@ struct Cli {
 
 #[derive(StructOpt)]
 enum Command {
-    Print,
-    // Add other commands here
+    #[structopt(about = "Watches a Folder")]
+    Watch {
+        #[structopt(help = "The folder to backup when it is updated")]
+        folder: String,
+    },
 }
 
 fn main() {
     let args = Cli::from_args();
 
     match args.cmd {
-        Command::Print => println!("Hello, World!"),
-        // Handle other commands here
+        Command::Watch { folder } => {
+            println!("{} is being watched...", folder);
+        }
     }
 }
