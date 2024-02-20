@@ -1,4 +1,7 @@
-const app_name: &str = "code_auto_back_uper";
+use std::path::PathBuf;
+
+const APP_NAME: &str = "GitAutoSync";
+const CONFIG_FILE_NAME: &str = "config.json";
 
 //TODO: how to figure out username????
 #[cfg(target_os = "windows")]
@@ -10,6 +13,13 @@ const CONFIG_PATH_PREFIX: &str = "~/Library/Preferences/";
 #[cfg(target_os = "linux")]
 const CONFIG_PATH_PREFIX: &str = "~/.config/";
 
-fn get_config_path() -> String {
-    format!("{}{}", CONFIG_PATH_PREFIX, APP_NAME)
+pub fn get_config_path() -> Result<String, String> {
+    let mut path = PathBuf::from(CONFIG_PATH_PREFIX);
+    path.push(APP_NAME);
+    path.push(CONFIG_FILE_NAME);
+
+    match path.to_str() {
+        Some(p) => Ok(p.to_string()),
+        None => Err("Fail to form a config path".to_string()),
+    }
 }
