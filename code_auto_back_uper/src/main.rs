@@ -2,7 +2,7 @@ mod cross_platform_constant;
 
 use std::{
     error::Error,
-    fs::File,
+    fs::{self, File},
     path::{Path, PathBuf},
 };
 use structopt::StructOpt;
@@ -59,10 +59,17 @@ fn store_watched_folder(folder: &str) {
 
 fn create_file_recursively(path: &Path) -> Result<(), String> {
     //TODO: Fix this function
-    let parent = path.parent().unwrap();
+    let parent = match path.parent() {
+        Some(parent) => parent,
+        None => return Ok(()),
+    };
 
     if !parent.exists() {
-        create_file_recursively(parent);
+        println!("Such directory does not exist: {:?}", parent);
+        match fs::create_dir_all(parent) {
+            Ok(_) => println!("Created a new directory: {:?}", parent),
+            Err(e) => return Err(e.to_string()),
+        }
     }
 
     match File::create(path) {

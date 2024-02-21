@@ -1,20 +1,55 @@
+use dirs::home_dir;
 use std::path::PathBuf;
-
 const APP_NAME: &str = "GitAutoSync";
 const CONFIG_FILE_NAME: &str = "config.json";
 
 //TODO: how to figure out username????
 #[cfg(target_os = "windows")]
-const CONFIG_PATH_PREFIX: &str = "C:\\Users\\YourUsername\\AppData\\Roaming\\";
+fn get_config_path_prefix() -> String {
+    use std::env;
+
+    let username = match env::var("USERNAME") {
+        Ok(username) => username,
+        Err(_) => {
+            panic!("Failed to get username")
+        }
+    };
+
+    format!("C:\\Users\\{}\\AppData\\Roaming\\", username)
+}
 
 #[cfg(target_os = "macos")]
-const CONFIG_PATH_PREFIX: &str = "~/Library/Preferences/";
+fn get_config_path_prefix() -> String {
+    expand_home_path("~/.config")
+}
 
 #[cfg(target_os = "linux")]
-const CONFIG_PATH_PREFIX: &str = "~/.config/";
+fn get_config_path_prefix() -> String {
+    //TODO: test linux
+    expand_home_path("~/.config")
+}
+
+fn expand_home_path(path: &str) -> String {
+    if path.starts_with("~") {
+        let home = match dirs::home_dir() {
+            Some(home) => home,
+            None => {
+                panic!("Failed to get home directory");
+            }
+        };
+
+        let mut path = path.to_string();
+        path.remove(0);
+        path.insert_str(0, home.to_str().unwrap());
+        path
+    } else {
+        path.to_string()
+    }
+}
 
 pub fn get_config_path() -> Result<String, String> {
-    let mut path = PathBuf::from(CONFIG_PATH_PREFIX);
+    let config_path_prefix = &get_config_path_prefix();
+    let mut path = PathBuf::from(config_path_prefix);
     path.push(APP_NAME);
     path.push(CONFIG_FILE_NAME);
 
