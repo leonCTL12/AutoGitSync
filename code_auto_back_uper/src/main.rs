@@ -2,14 +2,13 @@ mod cross_platform_constant;
 mod data_structures;
 
 use std::{
-    collections::HashSet,
     fs::{self, File, OpenOptions},
     io::{Read, Write},
     path::Path,
 };
 use structopt::StructOpt;
 
-use data_structures::config::{self, Config};
+use data_structures::config::Config;
 
 #[derive(StructOpt)]
 struct Cli {
@@ -85,14 +84,13 @@ fn read_config() -> Config {
         return Config::new();
     }
 
-    let config = match serde_json::from_str(&s) {
+    match serde_json::from_str(&s) {
         Ok(config) => config,
         Err(e) => {
             println!("Failed to parse the config file : {}", e);
-            return Config::new();
+            Config::new()
         }
-    };
-    config
+    }
 }
 
 fn write_config(config: Config) -> Result<(), String> {
