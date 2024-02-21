@@ -1,6 +1,6 @@
 use dirs::home_dir;
 use std::path::PathBuf;
-const APP_NAME: &str = "GitAutoSync";
+const APP_NAME: &str = "AutoGitSync";
 const CONFIG_FILE_NAME: &str = "config.json";
 
 //TODO: how to figure out username????
