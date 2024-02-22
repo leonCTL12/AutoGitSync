@@ -44,6 +44,9 @@ fn perform_backup(repo_path: &str) {
     let branch_name = get_back_up_branch_name();
 
     create_backup_branch_if_not_exists(&repo, &branch_name);
+    checkout_to_branch(&repo, &branch_name);
+
+    //TODO: finally check back to the original branch
 }
 
 fn get_back_up_branch_name() -> String {
@@ -91,5 +94,8 @@ fn checkout_to_branch(repo: &Repository, branch_name: &str) {
         }
     };
 
-    let obj = branch.get().peel(git2::ObjectType::Commit);
+    let obj = branch.get().peel(git2::ObjectType::Commit).unwrap();
+    repo.checkout_tree(&obj, None).unwrap();
+    repo.set_head(&format!("refs/heads/{}", branch_name))
+        .unwrap();
 }
