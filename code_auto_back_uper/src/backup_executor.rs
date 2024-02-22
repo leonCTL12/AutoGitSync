@@ -33,10 +33,6 @@ fn perform_backup(repo_path: &str) {
         return;
     }
 
-    create_backup_branch_if_not_exists(repo_path);
-}
-
-fn create_backup_branch_if_not_exists(repo_path: &str) {
     let repo = match Repository::open(repo_path) {
         Ok(repo) => repo,
         Err(e) => {
@@ -44,12 +40,21 @@ fn create_backup_branch_if_not_exists(repo_path: &str) {
             return;
         }
     };
+
+    let branch_name = get_back_up_branch_name();
+
+    create_backup_branch_if_not_exists(&repo, &branch_name);
+}
+
+fn get_back_up_branch_name() -> String {
     let os = os_type().unwrap_or("Unknown_os".to_string());
     let host = hostname().unwrap_or("Unknown_host".to_string());
     let cpu_count = cpu_num().unwrap_or(0);
 
-    let branch_name = format!("GitAutoBackup_{}_{}_{}", os, host, cpu_count);
+    format!("GitAutoBackup_{}_{}_{}", os, host, cpu_count)
+}
 
+fn create_backup_branch_if_not_exists(repo: &Repository, branch_name: &str) {
     if !repo
         .find_branch(&branch_name, git2::BranchType::Local)
         .is_ok()
