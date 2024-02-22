@@ -3,7 +3,7 @@ use std::collections::HashSet;
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    watching_folders: HashSet<String>,
+    pub watching_folders: HashSet<String>,
 }
 
 impl Config {

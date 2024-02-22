@@ -19,7 +19,8 @@ pub fn store_watched_folder(folder: &str) {
     }
 }
 
-fn read_config() -> Config {
+//Read-only, by the executor
+pub fn read_config() -> Config {
     //Step 1: Get Config Path for different os
     let config_path = match cross_platform_constant::get_config_path() {
         Ok(config_path) => config_path,

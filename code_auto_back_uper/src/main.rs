@@ -1,8 +1,10 @@
+mod backup_executor;
+mod config_manager;
 mod cross_platform_constant;
 mod data_structures;
 mod utilities;
 use structopt::StructOpt;
-mod config_manager;
+
 #[derive(StructOpt)]
 struct Cli {
     #[structopt(subcommand)]
@@ -29,6 +31,7 @@ fn main() {
         }
         Command::Run => {
             println!("Start to periodically backup the watched folders");
+            backup_executor::start();
         }
     }
 }
