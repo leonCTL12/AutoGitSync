@@ -43,8 +43,20 @@ fn perform_backup(repo_path: &str) {
 
     let branch_name = get_back_up_branch_name();
 
-    create_backup_branch_if_not_exists(&repo, &branch_name);
-    checkout_to_branch(&repo, &branch_name);
+    match create_backup_branch_if_not_exists(&repo, &branch_name) {
+        Ok(_) => println!("Backup branch is created successfully"),
+        Err(e) => {
+            println!("Failed to create a backup branch: {}", e);
+            return;
+        }
+    }
+    match checkout_to_branch(&repo, &branch_name) {
+        Ok(_) => println!("Checkout to the backup branch successfully"),
+        Err(e) => {
+            println!("Failed to checkout to the backup branch: {}", e);
+            return;
+        }
+    }
 
     //TODO: finally check back to the original branch
 }
@@ -57,45 +69,30 @@ fn get_back_up_branch_name() -> String {
     format!("GitAutoBackup_{}_{}_{}", os, host, cpu_count)
 }
 
-fn create_backup_branch_if_not_exists(repo: &Repository, branch_name: &str) {
-    if !repo
+fn create_backup_branch_if_not_exists(
+    repo: &Repository,
+    branch_name: &str,
+) -> Result<(), git2::Error> {
+    if repo
         .find_branch(&branch_name, git2::BranchType::Local)
         .is_ok()
     {
-        let oid = match repo.refname_to_id("HEAD") {
-            Ok(oid) => oid,
-            Err(e) => {
-                println!("Failed to get the oid of HEAD: {}", e);
-                return;
-            }
-        };
-
-        let commit = match repo.find_commit(oid) {
-            Ok(commit) => commit,
-            Err(e) => {
-                println!("Failed to find the commit of HEAD: {}", e);
-                return;
-            }
-        };
-
-        match repo.branch(&branch_name, &commit, false) {
-            Ok(_) => println!("Branch {} is created", branch_name),
-            Err(e) => println!("Failed to create branch {}: {}", branch_name, e),
-        }
+        return Ok(());
     }
+
+    let oid = repo.refname_to_id("HEAD")?;
+
+    let commit = repo.find_commit(oid)?;
+
+    repo.branch(&branch_name, &commit, false)?;
+    println!("Created a new branch: {}", branch_name);
+    Ok(())
 }
 
-fn checkout_to_branch(repo: &Repository, branch_name: &str) {
-    let branch = match repo.find_branch(branch_name, git2::BranchType::Local) {
-        Ok(branch) => branch,
-        Err(e) => {
-            println!("Failed to find branch {}: {}", branch_name, e);
-            return;
-        }
-    };
-
-    let obj = branch.get().peel(git2::ObjectType::Commit).unwrap();
-    repo.checkout_tree(&obj, None).unwrap();
-    repo.set_head(&format!("refs/heads/{}", branch_name))
-        .unwrap();
+fn checkout_to_branch(repo: &Repository, branch_name: &str) -> Result<(), git2::Error> {
+    let branch = repo.find_branch(branch_name, git2::BranchType::Local)?;
+    let obj = branch.get().peel(git2::ObjectType::Commit)?;
+    repo.checkout_tree(&obj, None)?;
+    repo.set_head(&format!("refs/heads/{}", branch_name))?;
+    Ok(())
 }
