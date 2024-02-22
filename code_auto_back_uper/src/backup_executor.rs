@@ -81,3 +81,15 @@ fn create_backup_branch_if_not_exists(repo: &Repository, branch_name: &str) {
         }
     }
 }
+
+fn checkout_to_branch(repo: &Repository, branch_name: &str) {
+    let branch = match repo.find_branch(branch_name, git2::BranchType::Local) {
+        Ok(branch) => branch,
+        Err(e) => {
+            println!("Failed to find branch {}: {}", branch_name, e);
+            return;
+        }
+    };
+
+    let obj = branch.get().peel(git2::ObjectType::Commit);
+}
