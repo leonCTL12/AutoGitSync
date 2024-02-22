@@ -1,5 +1,5 @@
 use crate::utilities::file_system;
-use git2::Repository;
+use git2::{Repository, Signature};
 use sys_info::{cpu_num, hostname, os_type};
 
 use crate::config_manager;
@@ -33,7 +33,7 @@ fn perform_backup(repo_path: &str) {
         return;
     }
 
-    let repo = match Repository::open(repo_path) {
+    let mut repo = match Repository::open(repo_path) {
         Ok(repo) => repo,
         Err(e) => {
             println!("Failed to open the repository: {}", e);
@@ -54,6 +54,14 @@ fn perform_backup(repo_path: &str) {
         Ok(_) => println!("Checkout to the backup branch successfully"),
         Err(e) => {
             println!("Failed to checkout to the backup branch: {}", e)
+        }
+    }
+
+    match commit_all_changes(&mut repo) {
+        Ok(_) => println!("Backup is done successfully"),
+        Err(e) => {
+            println!("Failed to commit the changes: {}", e);
+            return;
         }
     }
 
@@ -93,5 +101,28 @@ fn checkout_to_branch(repo: &Repository, branch_name: &str) -> Result<(), git2::
     let obj = branch.get().peel(git2::ObjectType::Commit)?;
     repo.checkout_tree(&obj, None)?;
     repo.set_head(&format!("refs/heads/{}", branch_name))?;
+    Ok(())
+}
+
+fn commit_all_changes(repo: &mut Repository) -> Result<(), git2::Error> {
+    //TODO: check if there is any change before commit
+    let mut index = repo.index()?;
+    index.add_all(["."].iter(), git2::IndexAddOption::DEFAULT, None)?;
+    index.write()?;
+
+    let tree_id = index.write_tree()?;
+    let tree = repo.find_tree(tree_id)?;
+    let head = repo.head()?.peel_to_commit()?;
+
+    let signature = Signature::now("Git Auto Sync Bot", "neverlostanyprogress@mail.com")?;
+    repo.commit(
+        Some("HEAD"),
+        &signature,
+        &signature,
+        "Auto backup",
+        &tree,
+        &[&head],
+    )?;
+
     Ok(())
 }
