@@ -1,5 +1,5 @@
 use crate::utilities::file_system;
-use git2::{Cred, Credentials, PushOptions, RemoteCallbacks, Repository, Signature};
+use git2::{Cred, PushOptions, RemoteCallbacks, Repository, Signature};
 use sys_info::{cpu_num, hostname, os_type};
 
 use crate::config_manager;
