@@ -57,6 +57,26 @@ fn perform_backup(repo_path: &str) {
         }
     }
 
+    match has_local_change(&repo) {
+        Ok(false) => {
+            println!("There are no local changes, no need to backup");
+            return;
+        }
+        Ok(true) => println!("There are local changes, need to backup"),
+        Err(e) => {
+            println!("Failed to check local changes: {}", e);
+            return;
+        }
+    }
+
+    match stage_all_changes(&repo) {
+        Ok(_) => println!("Staged all the changes successfully"),
+        Err(e) => {
+            println!("Failed to stage the changes: {}", e);
+            return;
+        }
+    }
+
     match commit_all_changes(&mut repo) {
         Ok(_) => println!("Backup is done successfully"),
         Err(e) => {
@@ -104,21 +124,25 @@ fn checkout_to_branch(repo: &Repository, branch_name: &str) -> Result<(), git2::
     Ok(())
 }
 
-fn commit_all_changes(repo: &mut Repository) -> Result<(), git2::Error> {
-    let mut index = repo.index()?;
-
+fn has_local_change(repo: &Repository) -> Result<bool, git2::Error> {
     //Check for changes
     let mut opts = git2::DiffOptions::new();
     let diff = repo.diff_index_to_workdir(None, Some(&mut opts))?;
-    let has_changes = diff.deltas().count() > 0;
-    if !has_changes {
-        println!("No changes to commit");
-        return Ok(());
-    }
+    Ok(diff.deltas().count() > 0)
+}
+
+fn stage_all_changes(repo: &Repository) -> Result<(), git2::Error> {
+    let mut index = repo.index()?;
 
     //Stage all the changes
     index.add_all(["."].iter(), git2::IndexAddOption::DEFAULT, None)?;
     index.write()?;
+
+    Ok(())
+}
+
+fn commit_all_changes(repo: &mut Repository) -> Result<(), git2::Error> {
+    let mut index = repo.index()?;
 
     let tree_id = index.write_tree()?;
     let tree = repo.find_tree(tree_id)?;
