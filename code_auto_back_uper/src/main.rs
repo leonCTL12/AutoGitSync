@@ -20,6 +20,11 @@ enum Command {
     },
     #[structopt(about = "Start to periodically backup the watched folders")]
     Run,
+    #[structopt(about = "Store the Personal Access Token")]
+    Auth {
+        #[structopt(help = "The personal access token")]
+        token: String,
+    },
 }
 
 fn main() {
@@ -32,6 +37,9 @@ fn main() {
         Command::Run => {
             println!("Start to periodically backup the watched folders");
             backup_executor::start();
+        }
+        Command::Auth { token } => {
+            //TODO Implement this
         }
     }
 }
