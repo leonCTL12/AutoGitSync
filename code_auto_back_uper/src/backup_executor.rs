@@ -1,5 +1,5 @@
 use crate::utilities::file_system;
-use git2::{Repository, Signature};
+use git2::{Cred, Credentials, PushOptions, RemoteCallbacks, Repository, Signature};
 use sys_info::{cpu_num, hostname, os_type};
 
 use crate::config_manager;
@@ -78,13 +78,20 @@ fn perform_backup(repo_path: &str) {
     }
 
     match commit_all_changes(&mut repo) {
-        Ok(_) => println!("Backup is done successfully"),
+        Ok(_) => println!("Committed the changes successfully"),
         Err(e) => {
             println!("Failed to commit the changes: {}", e);
             return;
         }
     }
 
+    match push_to_remote(&repo, &branch_name) {
+        Ok(_) => println!("Pushed the changes to the remote successfully"),
+        Err(e) => {
+            println!("Failed to push the changes to the remote: {}", e);
+            return;
+        }
+    }
     //TODO: finally check back to the original branch
 }
 
@@ -148,7 +155,7 @@ fn commit_all_changes(repo: &mut Repository) -> Result<(), git2::Error> {
     let tree = repo.find_tree(tree_id)?;
     let head = repo.head()?.peel_to_commit()?;
 
-    let signature = Signature::now("Git Auto Sync Bot", "neverlostanyprogress@mail.com")?;
+    let signature = Signature::now("Auto Git Bot", "makeup@gmail.com")?;
     repo.commit(
         Some("HEAD"),
         &signature,
@@ -156,6 +163,26 @@ fn commit_all_changes(repo: &mut Repository) -> Result<(), git2::Error> {
         "Auto backup",
         &tree,
         &[&head],
+    )?;
+
+    Ok(())
+}
+
+fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::Error> {
+    let mut remote = repo.find_remote("origin")?;
+
+    let mut callbacks = RemoteCallbacks::new();
+    callbacks.credentials(|_url, username_from_url, _allowed_types| {
+        //Only this matter, username and mail address do not matter
+        Cred::userpass_plaintext(username_from_url.unwrap(), "")
+    });
+
+    let mut push_options = PushOptions::new();
+    push_options.remote_callbacks(callbacks);
+
+    remote.push(
+        &[&format!("refs/heads/{}", branch_name)],
+        Some(&mut push_options),
     )?;
 
     Ok(())
