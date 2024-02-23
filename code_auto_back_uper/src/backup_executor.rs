@@ -105,8 +105,18 @@ fn checkout_to_branch(repo: &Repository, branch_name: &str) -> Result<(), git2::
 }
 
 fn commit_all_changes(repo: &mut Repository) -> Result<(), git2::Error> {
-    //TODO: check if there is any change before commit
     let mut index = repo.index()?;
+
+    //Check for changes
+    let mut opts = git2::DiffOptions::new();
+    let diff = repo.diff_index_to_workdir(None, Some(&mut opts))?;
+    let has_changes = diff.deltas().count() > 0;
+    if !has_changes {
+        println!("No changes to commit");
+        return Ok(());
+    }
+
+    //Stage all the changes
     index.add_all(["."].iter(), git2::IndexAddOption::DEFAULT, None)?;
     index.write()?;
 
