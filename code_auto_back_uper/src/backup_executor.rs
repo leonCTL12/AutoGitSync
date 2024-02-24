@@ -1,4 +1,5 @@
 use crate::utilities::file_system;
+use chrono::Local;
 use git2::{Cred, PushOptions, RemoteCallbacks, Repository, Signature};
 use sys_info::{cpu_num, hostname, os_type};
 
@@ -41,22 +42,6 @@ fn perform_backup(repo_path: &str) {
         }
     };
 
-    let branch_name = get_back_up_branch_name();
-
-    match create_backup_branch_if_not_exists(&repo, &branch_name) {
-        Ok(_) => println!("Backup branch is created successfully"),
-        Err(e) => {
-            println!("Failed to create a backup branch: {}", e);
-            return;
-        }
-    }
-    match checkout_to_branch(&repo, &branch_name) {
-        Ok(_) => println!("Checkout to the backup branch successfully"),
-        Err(e) => {
-            println!("Failed to checkout to the backup branch: {}", e)
-        }
-    }
-
     match has_local_change(&repo) {
         Ok(false) => {
             println!("There are no local changes, no need to backup");
@@ -65,6 +50,48 @@ fn perform_backup(repo_path: &str) {
         Ok(true) => println!("There are local changes, need to backup"),
         Err(e) => {
             println!("Failed to check local changes: {}", e);
+            return;
+        }
+    }
+
+    //Keep the reference of the current branch
+    let current_branch = match get_current_branch_name(&repo) {
+        Ok(branch) => branch,
+        Err(e) => {
+            println!("Failed to get the current branch: {}", e);
+            return;
+        }
+    };
+
+    let backup_branch_name = get_back_up_branch_name(&current_branch);
+
+    match create_backup_branch(&repo, &backup_branch_name) {
+        Ok(_) => println!("Backup branch is created successfully"),
+        Err(e) => {
+            println!("Failed to create a backup branch: {}", e);
+            return;
+        }
+    }
+
+    match stash_all_changes(&mut repo) {
+        Ok(_) => println!("Stashed all the changes successfully"),
+        Err(e) => {
+            println!("Failed to stash the changes: {}", e);
+            return;
+        }
+    }
+
+    match checkout_to_branch(&repo, &backup_branch_name) {
+        Ok(_) => println!("Checkout to the backup branch successfully"),
+        Err(e) => {
+            println!("Failed to checkout to the backup branch: {}", e)
+        }
+    }
+
+    match apply_stash(&mut repo, false) {
+        Ok(_) => println!("Applied the stash successfully"),
+        Err(e) => {
+            println!("Failed to apply the stash: {}", e);
             return;
         }
     }
@@ -85,35 +112,52 @@ fn perform_backup(repo_path: &str) {
         }
     }
 
-    match push_to_remote(&repo, &branch_name) {
+    match push_to_remote(&repo, &backup_branch_name) {
         Ok(_) => println!("Pushed the changes to the remote successfully"),
         Err(e) => {
             println!("Failed to push the changes to the remote: {}", e);
             return;
         }
     }
-    //TODO: finally check back to the original branch
-}
 
-fn get_back_up_branch_name() -> String {
-    let os = os_type().unwrap_or("Unknown_os".to_string());
-    let host = hostname().unwrap_or("Unknown_host".to_string());
-    let cpu_count = cpu_num().unwrap_or(0);
-
-    format!("GitAutoBackup_{}_{}_{}", os, host, cpu_count)
-}
-
-fn create_backup_branch_if_not_exists(
-    repo: &Repository,
-    branch_name: &str,
-) -> Result<(), git2::Error> {
-    if repo
-        .find_branch(branch_name, git2::BranchType::Local)
-        .is_ok()
-    {
-        return Ok(());
+    match checkout_to_branch(&repo, &current_branch) {
+        Ok(_) => println!("Checkout back to the original branch successfully"),
+        Err(e) => {
+            println!("Failed to checkout back to the original branch: {}", e);
+            return;
+        }
     }
 
+    match apply_stash(&mut repo, true) {
+        Ok(_) => println!("Applied the stash successfully"),
+        Err(e) => {
+            println!("Failed to apply the stash: {}", e);
+            return;
+        }
+    }
+
+    println!("Backup is done");
+}
+
+fn get_current_branch_name(repo: &Repository) -> Result<String, git2::Error> {
+    let head = repo.head()?;
+    let branch = head.shorthand().unwrap_or("Unknown_branch");
+    Ok(branch.to_string())
+}
+
+fn get_back_up_branch_name(current_branch_name: &str) -> String {
+    let host = hostname().unwrap_or("Unknown_host".to_string());
+    let current_time = Local::now();
+
+    format!(
+        "backup/{}_{}_{}",
+        current_branch_name,
+        host,
+        current_time.format("%Y-%m-%d_%H-%M-%S")
+    )
+}
+
+fn create_backup_branch(repo: &Repository, branch_name: &str) -> Result<(), git2::Error> {
     let oid = repo.refname_to_id("HEAD")?;
 
     let commit = repo.find_commit(oid)?;
@@ -123,11 +167,30 @@ fn create_backup_branch_if_not_exists(
     Ok(())
 }
 
+fn stash_all_changes(repo: &mut Repository) -> Result<(), git2::Error> {
+    let signautre = repo.signature()?;
+    let message = "Git auto sync stash";
+    let flags = git2::StashFlags::DEFAULT;
+    repo.stash_save(&signautre, message, Some(flags))?;
+    Ok(())
+}
+
 fn checkout_to_branch(repo: &Repository, branch_name: &str) -> Result<(), git2::Error> {
     let branch = repo.find_branch(branch_name, git2::BranchType::Local)?;
     let obj = branch.get().peel(git2::ObjectType::Commit)?;
     repo.checkout_tree(&obj, None)?;
     repo.set_head(&format!("refs/heads/{}", branch_name))?;
+    Ok(())
+}
+
+fn apply_stash(repo: &mut Repository, delete_after_apply: bool) -> Result<(), git2::Error> {
+    let stash_index = 0; //The latest stash
+    let mut options = git2::StashApplyOptions::default();
+    repo.stash_apply(stash_index, Some(&mut options))?;
+    if delete_after_apply {
+        repo.stash_drop(stash_index)?;
+    }
+
     Ok(())
 }
 
