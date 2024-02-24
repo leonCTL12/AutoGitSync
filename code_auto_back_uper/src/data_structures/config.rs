@@ -4,14 +4,12 @@ use std::collections::HashSet;
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub watching_folders: HashSet<String>,
-    pub encrypted_access_token: String,
 }
 
 impl Config {
     pub fn new() -> Config {
         Config {
             watching_folders: HashSet::new(),
-            encrypted_access_token: String::new(),
         }
     }
 
@@ -19,7 +17,5 @@ impl Config {
         self.watching_folders.insert(folder);
     }
 
-    pub fn update_encrypted_access_token(&mut self, token: String) {
-        self.encrypted_access_token = token;
-    }
+    pub fn update_encrypted_access_token(&mut self) {}
 }

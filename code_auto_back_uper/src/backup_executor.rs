@@ -173,8 +173,12 @@ fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::Erro
 
     let mut callbacks = RemoteCallbacks::new();
     callbacks.credentials(|_url, username_from_url, _allowed_types| {
-        //Only this matter, username and mail address do not matter
-        Cred::userpass_plaintext(username_from_url.unwrap(), "")
+        Cred::ssh_key(
+            username_from_url.unwrap(),
+            None,
+            std::path::Path::new(&format!("{}/.ssh/id_rsa", std::env::var("HOME").unwrap())),
+            None,
+        )
     });
 
     let mut push_options = PushOptions::new();
