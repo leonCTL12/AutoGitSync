@@ -8,7 +8,7 @@ pub struct RepositoryInstance {
 
 impl RepositoryInstance {
     pub fn new(repo_path: &str) -> Result<RepositoryInstance, String> {
-        let repo_path: &str = &repo_path;
+        let repo_path: &str = repo_path;
         if !file_system::is_git_repository(repo_path) {
             return Err(format!(
                 "{} is not a git repository, it will be ignored",
@@ -16,7 +16,7 @@ impl RepositoryInstance {
             ));
         }
 
-        let mut repo = match Repository::open(repo_path) {
+        let repo = match Repository::open(repo_path) {
             Ok(repo) => repo,
             Err(e) => {
                 return Err(format!("Failed to open the repository: {}", e));

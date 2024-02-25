@@ -17,5 +17,7 @@ impl Config {
         self.watching_folders.insert(folder);
     }
 
-    pub fn update_encrypted_access_token(&mut self) {}
+    pub fn update_encrypted_access_token(&mut self) {
+        todo!("Implement this")
+    }
 }

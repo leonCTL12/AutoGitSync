@@ -1,7 +1,7 @@
 use crate::config_manager;
 use crate::repository_instance::RepositoryInstance;
 use chrono::Local;
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry::Vacant, HashMap};
 use sys_info::hostname;
 
 pub fn start() {
@@ -25,7 +25,8 @@ fn backup_check(map: &mut HashMap<String, RepositoryInstance>) {
     }
 
     for folder in config.watching_folders {
-        if !map.contains_key(&folder) {
+        //Map.entry returns Vacant or Occupied
+        if let Vacant(_) = map.entry(folder.clone()) {
             let repo_instance = match RepositoryInstance::new(&folder) {
                 Ok(repo) => repo,
                 Err(_) => {

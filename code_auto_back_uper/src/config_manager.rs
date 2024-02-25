@@ -19,8 +19,6 @@ pub fn store_watched_folder(folder: &str) {
     }
 }
 
-pub fn store_encrypted_access_token(raw_token: &str) {}
-
 //Read-only, by the executor
 pub fn read_config() -> Config {
     //Step 1: Get Config Path for different os
