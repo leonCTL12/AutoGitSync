@@ -2,6 +2,7 @@ mod backup_executor;
 mod config_manager;
 mod cross_platform_constant;
 mod data_structures;
+mod repository_instance;
 mod utilities;
 use structopt::StructOpt;
 

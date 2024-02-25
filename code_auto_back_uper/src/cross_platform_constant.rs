@@ -2,7 +2,6 @@ use std::path::PathBuf;
 const APP_NAME: &str = "AutoGitSync";
 const CONFIG_FILE_NAME: &str = "config.json";
 
-//TODO: how to figure out username????
 #[cfg(target_os = "windows")]
 fn get_config_path_prefix() -> String {
     use std::env;
