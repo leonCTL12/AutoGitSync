@@ -1,4 +1,4 @@
-use git2::{Cred, PushOptions, RemoteCallbacks, Repository, Signature};
+use git2::{BranchType, Cred, PushOptions, RemoteCallbacks, Repository, Signature};
 
 pub fn get_current_branch_name(repo: &Repository) -> Result<String, git2::Error> {
     let head = repo.head()?;
@@ -25,7 +25,7 @@ pub fn stash_all_changes(repo: &mut Repository) -> Result<(), git2::Error> {
 }
 
 pub fn checkout_to_branch(repo: &Repository, branch_name: &str) -> Result<(), git2::Error> {
-    let branch = repo.find_branch(branch_name, git2::BranchType::Local)?;
+    let branch = repo.find_branch(branch_name, BranchType::Local)?;
     let obj = branch.get().peel(git2::ObjectType::Commit)?;
     repo.checkout_tree(&obj, None)?;
     repo.set_head(&format!("refs/heads/{}", branch_name))?;
@@ -102,4 +102,23 @@ pub fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::
     )?;
 
     Ok(())
+}
+
+pub fn get_latest_backup_branch_name(repo: &Repository) -> Result<String, git2::Error> {
+    let branches = repo.branches(Some(BranchType::Local))?;
+    let mut latest_backup_time = 0;
+    let mut latest_backup_branch = "".to_owned();
+    for branch in branches {
+        let (branch, _) = branch?;
+        let (branch_name, _) = branch.name()?;
+        if branch_name.starts_with("backup/") {
+            let time = branch.get().peel_to_commit()?.time().seconds();
+            if time > latest_backup_time {
+                latest_backup_time = time;
+                latest_backup_branch = branch_name.to_string();
+            }
+        }
+    }
+
+    Ok(latest_backup_branch.to_string())
 }
