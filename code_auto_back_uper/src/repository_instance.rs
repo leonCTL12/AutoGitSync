@@ -31,126 +31,71 @@ impl RepositoryInstance {
         })
     }
 
-    pub fn perform_backup(&mut self) {
-        if !self.should_perform_backup() {
-            return;
+    pub fn perform_backup(&mut self) -> Result<(), git2::Error> {
+        if !self.should_perform_backup()? {
+            return Ok(());
         }
 
         //Keep the reference of the current branch
-        let current_branch = match git2_api_wrapper::get_current_branch_name(&self.repo) {
-            Ok(branch) => branch,
-            Err(e) => {
-                println!("Failed to get the current branch: {}", e);
-                return;
-            }
-        };
+        let current_branch = git2_api_wrapper::get_current_branch_name(&self.repo)?;
 
         let backup_branch_name = backup_executor::get_back_up_branch_name(&current_branch);
 
-        match git2_api_wrapper::create_branch(&self.repo, &backup_branch_name) {
-            Ok(_) => println!("Backup branch is created successfully"),
-            Err(e) => {
-                println!("Failed to create a backup branch: {}", e);
-                return;
-            }
-        }
+        git2_api_wrapper::create_branch(&self.repo, &backup_branch_name)?;
 
-        match git2_api_wrapper::stash_all_changes(&mut self.repo) {
-            Ok(_) => println!("Stashed all the changes successfully"),
-            Err(e) => {
-                println!("Failed to stash the changes: {}", e);
-                return;
-            }
-        }
+        git2_api_wrapper::stash_all_changes(&mut self.repo)?;
 
-        match git2_api_wrapper::checkout_to_branch(&self.repo, &backup_branch_name) {
-            Ok(_) => println!("Checkout to the backup branch successfully"),
-            Err(e) => {
-                println!("Failed to checkout to the backup branch: {}", e)
-            }
-        }
+        git2_api_wrapper::checkout_to_branch(&self.repo, &backup_branch_name)?;
 
-        match git2_api_wrapper::apply_stash(&mut self.repo, false) {
-            Ok(_) => println!("Applied the stash successfully"),
-            Err(e) => {
-                println!("Failed to apply the stash: {}", e);
-                return;
-            }
-        }
+        git2_api_wrapper::apply_stash(&mut self.repo, false);
 
-        match git2_api_wrapper::stage_all_changes(&self.repo) {
-            Ok(_) => println!("Staged all the changes successfully"),
-            Err(e) => {
-                println!("Failed to stage the changes: {}", e);
-                return;
-            }
-        }
+        git2_api_wrapper::stage_all_changes(&self.repo)?;
 
-        match git2_api_wrapper::commit_all_changes(&mut self.repo) {
-            Ok(_) => println!("Committed the changes successfully"),
-            Err(e) => {
-                println!("Failed to commit the changes: {}", e);
-                return;
-            }
-        }
+        git2_api_wrapper::commit_all_changes(&mut self.repo);
 
-        match git2_api_wrapper::push_to_remote(&self.repo, &backup_branch_name) {
-            Ok(_) => println!("Pushed the changes to the remote successfully"),
-            Err(e) => {
-                println!("Failed to push the changes to the remote: {}", e);
-                return;
-            }
-        }
+        git2_api_wrapper::push_to_remote(&self.repo, &backup_branch_name);
 
-        match git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch) {
-            Ok(_) => println!("Checkout back to the original branch successfully"),
-            Err(e) => {
-                println!("Failed to checkout back to the original branch: {}", e);
-                return;
-            }
-        }
+        git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch);
 
-        match git2_api_wrapper::apply_stash(&mut self.repo, true) {
-            Ok(_) => println!("Applied the stash successfully"),
-            Err(e) => {
-                println!("Failed to apply the stash: {}", e);
-                return;
-            }
-        }
+        git2_api_wrapper::apply_stash(&mut self.repo, true);
 
         self.last_update_time = Some(Utc::now());
-        println!("Backup is done");
+        Ok(())
     }
 
-    fn should_perform_backup(&self) -> bool {
+    fn should_perform_backup(&mut self) -> Result<bool, git2::Error> {
+        //Keep the reference of the current branch
+        let current_branch = git2_api_wrapper::get_current_branch_name(&self.repo)?;
+
         let latest_branch_name = match git2_api_wrapper::get_latest_backup_branch_name(&self.repo) {
             Some(branch_name) => branch_name,
             None => {
-                return true;
+                return Ok(true);
             }
         };
 
-        println!("Latest backup branch name: {}", latest_branch_name);
-        //TODO: Check out to that branch and test local change
-        match git2_api_wrapper::has_local_change(&self.repo) {
-            Ok(false) => {
-                println!("There are no local changes, no need to backup");
-                return false;
-            }
-            Ok(true) => println!("There are local changes, need to backup"),
-            Err(e) => {
-                println!("Failed to check local changes: {}", e);
-                return false;
-            }
-        }
+        git2_api_wrapper::stash_all_changes(&mut self.repo)?;
 
+        git2_api_wrapper::checkout_to_branch(&self.repo, &latest_branch_name)?;
+
+        //TODO: Consider abort when there is a conflict and return true (coz that mean there is something that needed to be backup)
+        git2_api_wrapper::apply_stash(&mut self.repo, false)?;
+
+        let has_local_change = git2_api_wrapper::has_local_change(&self.repo)?;
+        git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch)?;
+        git2_api_wrapper::apply_stash(&mut self.repo, true)?;
+
+        if !has_local_change {
+            println!("No need to backup");
+            return Ok(false);
+        }
         let config = crate::config_manager::read_config();
         match self.last_update_time {
-            None => true,
+            None => Ok(true),
             Some(last_update_time) => {
                 let current_time = Utc::now();
                 let duration = current_time.signed_duration_since(last_update_time);
-                duration.num_minutes() >= config.change_detection_buffer as i64
+                Ok(duration.num_minutes() >= config.change_detection_buffer as i64)
             }
         }
     }
