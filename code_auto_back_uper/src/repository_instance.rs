@@ -123,6 +123,15 @@ impl RepositoryInstance {
     }
 
     fn should_perform_backup(&self) -> bool {
+        let latest_branch_name = match git2_api_wrapper::get_latest_backup_branch_name(&self.repo) {
+            Some(branch_name) => branch_name,
+            None => {
+                return true;
+            }
+        };
+
+        println!("Latest backup branch name: {}", latest_branch_name);
+        //TODO: Check out to that branch and test local change
         match git2_api_wrapper::has_local_change(&self.repo) {
             Ok(false) => {
                 println!("There are no local changes, no need to backup");

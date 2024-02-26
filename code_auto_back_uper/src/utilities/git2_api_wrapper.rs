@@ -104,21 +104,34 @@ pub fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::
     Ok(())
 }
 
-pub fn get_latest_backup_branch_name(repo: &Repository) -> Result<String, git2::Error> {
-    let branches = repo.branches(Some(BranchType::Local))?;
+pub fn get_latest_backup_branch_name(repo: &Repository) -> Option<String> {
+    let branches = match repo.branches(Some(BranchType::Local)) {
+        Ok(branches) => branches,
+        Err(_) => return None,
+    };
     let mut latest_backup_time = 0;
-    let mut latest_backup_branch = "".to_owned();
+    let mut latest_backup_branch: Option<String> = None;
     for branch in branches {
-        let (branch, _) = branch?;
-        let (branch_name, _) = branch.name()?;
+        let branch = match branch {
+            Ok((branch, _)) => branch,
+            Err(_) => continue,
+        };
+        let branch_name = match branch.name() {
+            Ok(Some(name)) => name,
+            _ => continue,
+        };
         if branch_name.starts_with("backup/") {
-            let time = branch.get().peel_to_commit()?.time().seconds();
+            let time = match branch.get().peel_to_commit() {
+                Ok(commit) => commit.time().seconds(),
+                _ => continue,
+            };
             if time > latest_backup_time {
                 latest_backup_time = time;
-                latest_backup_branch = branch_name.to_string();
+
+                latest_backup_branch = Some(branch_name.to_string());
             }
         }
     }
 
-    Ok(latest_backup_branch.to_string())
+    latest_backup_branch
 }
