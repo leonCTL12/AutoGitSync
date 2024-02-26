@@ -1,9 +1,12 @@
 use crate::backup_executor;
 use crate::utilities::file_system;
 use crate::utilities::git2_api_wrapper;
+use chrono::{DateTime, Utc};
+
 use git2::Repository;
 pub struct RepositoryInstance {
     repo: Repository,
+    last_update_time: Option<DateTime<Utc>>,
 }
 
 impl RepositoryInstance {
@@ -22,20 +25,15 @@ impl RepositoryInstance {
                 return Err(format!("Failed to open the repository: {}", e));
             }
         };
-        Ok(RepositoryInstance { repo })
+        Ok(RepositoryInstance {
+            repo,
+            last_update_time: None,
+        })
     }
 
     pub fn perform_backup(&mut self) {
-        match git2_api_wrapper::has_local_change(&self.repo) {
-            Ok(false) => {
-                println!("There are no local changes, no need to backup");
-                return;
-            }
-            Ok(true) => println!("There are local changes, need to backup"),
-            Err(e) => {
-                println!("Failed to check local changes: {}", e);
-                return;
-            }
+        if !self.should_perform_backup() {
+            return;
         }
 
         //Keep the reference of the current branch
@@ -120,6 +118,31 @@ impl RepositoryInstance {
             }
         }
 
+        self.last_update_time = Some(Utc::now());
         println!("Backup is done");
+    }
+
+    fn should_perform_backup(&self) -> bool {
+        match git2_api_wrapper::has_local_change(&self.repo) {
+            Ok(false) => {
+                println!("There are no local changes, no need to backup");
+                return false;
+            }
+            Ok(true) => println!("There are local changes, need to backup"),
+            Err(e) => {
+                println!("Failed to check local changes: {}", e);
+                return false;
+            }
+        }
+
+        let config = crate::config_manager::read_config();
+        match self.last_update_time {
+            None => true,
+            Some(last_update_time) => {
+                let current_time = Utc::now();
+                let duration = current_time.signed_duration_since(last_update_time);
+                duration.num_minutes() >= config.change_detection_buffer as i64
+            }
+        }
     }
 }

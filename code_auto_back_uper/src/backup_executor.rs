@@ -8,8 +8,10 @@ pub fn start() {
     let mut map: HashMap<String, RepositoryInstance> = HashMap::new();
 
     loop {
+        //Check everyloop so that it reacts to the new setting
+        let config = config_manager::read_config();
         backup_check(&mut map);
-        std::thread::sleep(std::time::Duration::from_secs(5));
+        std::thread::sleep(std::time::Duration::from_secs(config.backup_frequency * 60));
     }
 }
 
