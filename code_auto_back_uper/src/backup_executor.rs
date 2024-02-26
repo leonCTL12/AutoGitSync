@@ -48,9 +48,9 @@ pub fn get_back_up_branch_name(current_branch_name: &str) -> String {
     let current_time = Local::now();
 
     format!(
-        "backup/{}_{}_{}",
-        current_branch_name,
+        "backup/{}/{}_{}",
         host,
+        current_branch_name,
         current_time.format("%Y-%m-%d_%H-%M-%S")
     )
 }
