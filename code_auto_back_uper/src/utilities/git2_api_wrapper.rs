@@ -1,4 +1,4 @@
-use git2::{BranchType, Cred, PushOptions, RemoteCallbacks, Repository, Signature};
+use git2::{BranchType, Cred, PushOptions, RemoteCallbacks, Repository, ResetType, Signature};
 
 pub fn get_current_branch_name(repo: &Repository) -> Result<String, git2::Error> {
     let head = repo.head()?;
@@ -32,14 +32,23 @@ pub fn checkout_to_branch(repo: &Repository, branch_name: &str) -> Result<(), gi
     Ok(())
 }
 
-pub fn apply_stash(repo: &mut Repository, delete_after_apply: bool) -> Result<(), git2::Error> {
+//This function will try to apply stash and abort if there is any conflict
+pub fn try_apply_stash(repo: &mut Repository, delete_after_apply: bool) -> Result<(), git2::Error> {
     let stash_index = 0; //The latest stash
     let mut options = git2::StashApplyOptions::default();
     repo.stash_apply(stash_index, Some(&mut options))?;
+
+    let conflicts = repo.index()?.has_conflicts();
+    if conflicts {
+        println!("Conflict detected, aborting stash apply");
+        let head = repo.head()?.peel_to_commit()?;
+        repo.reset(&head.into_object(), ResetType::Hard, None)?;
+        return Err(git2::Error::from_str("Conflict detected"));
+    }
+
     if delete_after_apply {
         repo.stash_drop(stash_index)?;
     }
-
     Ok(())
 }
 

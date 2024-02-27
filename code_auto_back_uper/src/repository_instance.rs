@@ -6,6 +6,7 @@ use chrono::{DateTime, Utc};
 use git2::Repository;
 pub struct RepositoryInstance {
     repo: Repository,
+    pub path: String,
     last_update_time: Option<DateTime<Utc>>,
 }
 
@@ -27,6 +28,7 @@ impl RepositoryInstance {
         };
         Ok(RepositoryInstance {
             repo,
+            path: repo_path.to_string(),
             last_update_time: None,
         })
     }
@@ -47,7 +49,7 @@ impl RepositoryInstance {
 
         git2_api_wrapper::checkout_to_branch(&self.repo, &backup_branch_name)?;
 
-        git2_api_wrapper::apply_stash(&mut self.repo, false);
+        git2_api_wrapper::try_apply_stash(&mut self.repo, false);
 
         git2_api_wrapper::stage_all_changes(&self.repo)?;
 
@@ -57,7 +59,7 @@ impl RepositoryInstance {
 
         git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch);
 
-        git2_api_wrapper::apply_stash(&mut self.repo, true);
+        git2_api_wrapper::try_apply_stash(&mut self.repo, true);
 
         self.last_update_time = Some(Utc::now());
         Ok(())
@@ -78,12 +80,18 @@ impl RepositoryInstance {
 
         git2_api_wrapper::checkout_to_branch(&self.repo, &latest_branch_name)?;
 
-        //TODO: Consider abort when there is a conflict and return true (coz that mean there is something that needed to be backup)
-        git2_api_wrapper::apply_stash(&mut self.repo, false)?;
+        match git2_api_wrapper::try_apply_stash(&mut self.repo, false) {
+            Ok(_) => {}
+            Err(_) => {
+                git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch)?;
+                git2_api_wrapper::try_apply_stash(&mut self.repo, true)?;
+                return Ok(true);
+            }
+        }
 
         let has_local_change = git2_api_wrapper::has_local_change(&self.repo)?;
         git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch)?;
-        git2_api_wrapper::apply_stash(&mut self.repo, true)?;
+        git2_api_wrapper::try_apply_stash(&mut self.repo, true)?;
 
         if !has_local_change {
             println!("No need to backup");
