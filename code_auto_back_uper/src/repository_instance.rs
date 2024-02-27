@@ -82,25 +82,20 @@ impl RepositoryInstance {
 
         git2_api_wrapper::checkout_to_branch(&self.repo, &latest_branch_name)?;
 
-        match git2_api_wrapper::try_apply_stash(&mut self.repo) {
-            Ok(_) => {}
-            Err(_) => {
-                git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch)?;
-                git2_api_wrapper::try_apply_stash(&mut self.repo)?;
-                git2_api_wrapper::delete_latest_stash(&mut self.repo)?;
-                return Ok(true);
+        if let Err(e) = git2_api_wrapper::try_apply_stash(&mut self.repo) {
+            self.restore_repo_state(current_branch)?;
+            if e.message() != "Conflict detected" {
+                return Err(e);
             }
+            return Ok(true);
         }
 
-        let has_local_change = git2_api_wrapper::has_local_change(&self.repo)?;
-        git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch)?;
-        git2_api_wrapper::try_apply_stash(&mut self.repo)?;
-        git2_api_wrapper::delete_latest_stash(&mut self.repo)?;
-
-        if !has_local_change {
+        if !git2_api_wrapper::has_local_change(&self.repo)? {
+            self.restore_repo_state(current_branch)?;
             println!("No need to backup");
             return Ok(false);
         }
+        self.restore_repo_state(current_branch)?;
         let config = crate::config_manager::read_config();
         match self.last_update_time {
             None => Ok(true),
@@ -110,5 +105,12 @@ impl RepositoryInstance {
                 Ok(duration.num_minutes() >= config.change_detection_buffer as i64)
             }
         }
+    }
+
+    fn restore_repo_state(&mut self, current_branch: String) -> Result<(), git2::Error> {
+        git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch)?;
+        git2_api_wrapper::try_apply_stash(&mut self.repo)?;
+        git2_api_wrapper::delete_latest_stash(&mut self.repo)?;
+        Ok(())
     }
 }
