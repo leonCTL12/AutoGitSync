@@ -2,7 +2,6 @@ use crate::backup_executor;
 use crate::utilities::file_system;
 use crate::utilities::git2_api_wrapper;
 use chrono::{DateTime, Utc};
-
 use git2::Repository;
 pub struct RepositoryInstance {
     repo: Repository,
@@ -95,6 +94,7 @@ impl RepositoryInstance {
             println!("No need to backup");
             return Ok(false);
         }
+
         self.restore_repo_state(current_branch)?;
         let config = crate::config_manager::read_config();
         match self.last_update_time {
