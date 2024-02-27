@@ -33,7 +33,7 @@ pub fn checkout_to_branch(repo: &Repository, branch_name: &str) -> Result<(), gi
 }
 
 //This function will try to apply stash and abort if there is any conflict
-pub fn try_apply_stash(repo: &mut Repository, delete_after_apply: bool) -> Result<(), git2::Error> {
+pub fn try_apply_stash(repo: &mut Repository) -> Result<(), git2::Error> {
     let stash_index = 0; //The latest stash
     let mut options = git2::StashApplyOptions::default();
     repo.stash_apply(stash_index, Some(&mut options))?;
@@ -46,9 +46,12 @@ pub fn try_apply_stash(repo: &mut Repository, delete_after_apply: bool) -> Resul
         return Err(git2::Error::from_str("Conflict detected"));
     }
 
-    if delete_after_apply {
-        repo.stash_drop(stash_index)?;
-    }
+    Ok(())
+}
+
+pub fn delete_latest_stash(repo: &mut Repository) -> Result<(), git2::Error> {
+    let stash_index = 0; //The latest stash
+    repo.stash_drop(stash_index)?;
     Ok(())
 }
 
