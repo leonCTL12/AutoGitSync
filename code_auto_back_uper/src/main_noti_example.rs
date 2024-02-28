@@ -1,11 +1,7 @@
 use notify::{Event, RecommendedWatcher, RecursiveMode, Result, Watcher};
-use std::sync::mpsc::channel;
 use std::time::Duration;
 
 fn main() -> Result<()> {
-    // Create a channel to receive the events.
-    let (tx, rx) = channel::<Result<Event>>();
-
     // Automatically select the best implementation for your platform.
     let mut watcher = notify::recommended_watcher(move |res| match res {
         Ok(event) => println!("event: {:?}", event),
@@ -20,10 +16,6 @@ fn main() -> Result<()> {
     )?;
 
     loop {
-        match rx.recv() {
-            Ok(event) => println!("{:?}", event),
-            Err(e) => println!("watch error: {:?}", e),
-        }
         // Sleep for a short duration to prevent the loop from running at full speed.
         std::thread::sleep(Duration::from_millis(100));
     }
