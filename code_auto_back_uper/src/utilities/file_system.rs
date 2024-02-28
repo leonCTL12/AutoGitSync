@@ -31,6 +31,27 @@ pub fn read_file_to_string(path: &str) -> Result<String, String> {
     }
 }
 
+pub fn get_sub_folders(root_path: &str) -> Result<Vec<String>, String> {
+    let mut sub_folders = Vec::new();
+    for entry in match fs::read_dir(root_path) {
+        Ok(entry) => entry,
+        Err(e) => return Err(e.to_string()),
+    } {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) => return Err(e.to_string()),
+        };
+        let path = entry.path();
+        if path.is_dir() {
+            match path.to_str() {
+                Some(path) => sub_folders.push(path.to_string()),
+                None => return Err("Failed to convert path to string".to_string()),
+            }
+        }
+    }
+    Ok(sub_folders)
+}
+
 pub fn write_string_to_file(path: &str, content: String) -> Result<(), String> {
     let mut file = match OpenOptions::new()
         .write(true)

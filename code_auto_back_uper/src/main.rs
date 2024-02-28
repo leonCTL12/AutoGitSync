@@ -6,6 +6,7 @@ mod file_change_watcher;
 mod repository_instance;
 mod utilities;
 use structopt::StructOpt;
+use utilities::file_system;
 
 #[derive(StructOpt)]
 struct Cli {
@@ -18,6 +19,11 @@ enum Command {
     #[structopt(about = "Watches a Folder")]
     Add {
         #[structopt(help = "The folder to backup when it is updated")]
+        folder: String,
+    },
+    #[structopt(about = "Watch all the git repo in this folder (not recursive)")]
+    AddWorkspace {
+        #[structopt(help = "The root folder to watch all the git repos in it")]
         folder: String,
     },
     #[structopt(about = "List the watched folders")]
@@ -42,6 +48,17 @@ fn main() {
     match args.cmd {
         Command::Add { folder } => {
             config_manager::add_watched_folder(&folder);
+        }
+        Command::AddWorkspace { folder } => {
+            let repos = match file_system::get_sub_folders(&folder) {
+                Ok(repos) => repos,
+                Err(e) => {
+                    panic!("Failed to get sub folders: {}", e);
+                }
+            };
+            for repo in repos {
+                config_manager::add_watched_folder(&repo);
+            }
         }
         Command::List => {
             config_manager::list_watched_folder();

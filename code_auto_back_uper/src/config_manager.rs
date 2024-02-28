@@ -35,7 +35,7 @@ pub fn list_watched_folder() {
         return;
     }
 
-    println!("Watching Folders:");
+    println!("Watching {} Folders:", config.watching_folders.len());
     for folder in config.watching_folders {
         println!("{}", folder);
     }
