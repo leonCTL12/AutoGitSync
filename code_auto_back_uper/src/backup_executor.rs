@@ -1,18 +1,40 @@
 use crate::config_manager;
 use crate::repository_instance::RepositoryInstance;
 use chrono::Local;
-use std::collections::{hash_map::Entry::Vacant, HashMap};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use std::{
+    collections::{hash_map::Entry::Vacant, HashMap},
+    path::Path,
+};
 use sys_info::hostname;
 
-pub fn start() {
-    let mut map: HashMap<String, RepositoryInstance> = HashMap::new();
+fn test_notify() -> notify::Result<()> {
+    // Automatically select the best implementation for your platform.
+    let mut watcher = notify::recommended_watcher(|res| match res {
+        Ok(event) => println!("event: {:?}", event),
+        Err(e) => println!("watch error: {:?}", e),
+    })?;
 
-    loop {
-        //Check everyloop so that it reacts to the new setting
-        let config = config_manager::read_config();
-        backup_check(&mut map);
-        std::thread::sleep(std::time::Duration::from_secs(config.backup_frequency * 60));
+    // Add a path to be watched. All files and directories at that path and
+    // below will be monitored for changes.
+    let config = config_manager::read_config();
+    for folder in config.watching_folders {
+        watcher.watch(Path::new(&folder), RecursiveMode::Recursive)?;
     }
+    Ok(())
+}
+
+pub fn start() {
+    test_notify();
+
+    // let mut map: HashMap<String, RepositoryInstance> = HashMap::new();
+
+    // loop {
+    //     //Check everyloop so that it reacts to the new setting
+    //     let config = config_manager::read_config();
+    //     backup_check(&mut map);
+    //     std::thread::sleep(std::time::Duration::from_secs(config.backup_frequency * 60));
+    // }
 }
 
 fn backup_check(map: &mut HashMap<String, RepositoryInstance>) {

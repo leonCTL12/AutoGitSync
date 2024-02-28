@@ -10,6 +10,7 @@ chrono = "0.4.34"
 dirs = "5.0.1"
 git2 = "0.18.2"
 magic-crypt = "3.1.13"
+notify = "6.1.1"
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
 structopt = "0.3.26"
