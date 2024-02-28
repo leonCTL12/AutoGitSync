@@ -1,13 +1,29 @@
-use notify::{RecursiveMode, Watcher};
+use crate::config_manager;
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::Path;
+use std::thread;
 use std::time::Duration;
 
+//This whole file watcher script will be run in a separate thread
+
+fn create_file_watcher() -> Result<notify::RecommendedWatcher, notify::Error> {
+    notify::recommended_watcher(|res| match res {
+        Ok(event) => println!("event: {:?}", event),
+        Err(e) => println!("watch error: {:?}", e),
+    })
+}
+
+fn watch_directories(watcher: &mut RecommendedWatcher) -> notify::Result<()> {
+    let config = config_manager::read_config();
+    for folder in config.watching_folders {
+        watcher.watch(Path::new(&folder), RecursiveMode::Recursive)?;
+    }
+    Ok(())
+}
+
 pub fn start() {
-    std::thread::spawn(move || {
-        let mut watcher = match notify::recommended_watcher(|res| match res {
-            Ok(event) => println!("event: {:?}", event),
-            Err(e) => println!("watch error: {:?}", e),
-        }) {
+    thread::spawn(move || {
+        let mut watcher = match create_file_watcher() {
             Ok(watcher) => watcher,
             Err(e) => {
                 println!("start watcher failed");
@@ -16,10 +32,7 @@ pub fn start() {
             }
         };
 
-        if let Err(e) = watcher.watch(
-            Path::new("/Users/leonchan/WorkSpace/git_auto_sync_test_repo"),
-            RecursiveMode::Recursive,
-        ) {
+        if let Err(e) = watch_directories(&mut watcher) {
             println!("start watcher failed");
             println!("Error: {:?}", e);
             return;
