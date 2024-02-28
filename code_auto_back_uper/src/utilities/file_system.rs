@@ -32,7 +32,12 @@ pub fn read_file_to_string(path: &str) -> Result<String, String> {
 }
 
 pub fn write_string_to_file(path: &str, content: String) -> Result<(), String> {
-    let mut file = match OpenOptions::new().write(true).create(true).open(path) {
+    let mut file = match OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(path)
+    {
         Ok(file) => file,
         Err(e) => return Err(e.to_string()),
     };
