@@ -9,20 +9,40 @@ use std::{
 };
 use sys_info::hostname;
 
-pub fn start() -> notify::Result<()> {
-    //File watcher part
-    let mut watcher = notify::recommended_watcher(|res| match res {
-        Ok(event) => println!("event: {:?}", event),
-        Err(e) => println!("watch error: {:?}", e),
-    })?;
+fn start_file_watcher() {
+    std::thread::spawn(move || {
+        let mut watcher = match notify::recommended_watcher(|res| match res {
+            Ok(event) => println!("event: {:?}", event),
+            Err(e) => println!("watch error: {:?}", e),
+        }) {
+            Ok(watcher) => watcher,
+            Err(e) => {
+                println!("start watcher failed");
+                println!("Error: {:?}", e);
+                return;
+            }
+        };
 
-    watcher.watch(
-        Path::new("/Users/leonchan/WorkSpace/git_auto_sync_test_repo"),
-        RecursiveMode::Recursive,
-    )?;
+        if let Err(e) = watcher.watch(
+            Path::new("/Users/leonchan/WorkSpace/git_auto_sync_test_repo"),
+            RecursiveMode::Recursive,
+        ) {
+            println!("start watcher failed");
+            println!("Error: {:?}", e);
+            return;
+        }
 
-    //Backup part
+        loop {
+            std::thread::sleep(Duration::from_millis(5000));
+        }
+    });
+}
+
+pub fn start() {
+    start_file_watcher();
+
     let mut map: HashMap<String, RepositoryInstance> = HashMap::new();
+
     loop {
         //Check everyloop so that it reacts to the new setting
         let config = config_manager::read_config();
