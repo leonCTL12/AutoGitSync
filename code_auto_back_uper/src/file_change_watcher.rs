@@ -1,5 +1,5 @@
 use crate::config_manager;
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::Path;
 use std::thread;
 use std::time::Duration;
@@ -8,7 +8,7 @@ use std::time::Duration;
 
 fn create_file_watcher() -> Result<notify::RecommendedWatcher, notify::Error> {
     notify::recommended_watcher(|res| match res {
-        Ok(event) => println!("event: {:?}", event),
+        Ok(event) => on_file_change_event(event),
         Err(e) => println!("watch error: {:?}", e),
     })
 }
@@ -19,6 +19,18 @@ fn watch_directories(watcher: &mut RecommendedWatcher) -> notify::Result<()> {
         watcher.watch(Path::new(&folder), RecursiveMode::Recursive)?;
     }
     Ok(())
+}
+
+fn on_file_change_event(event: Event) {
+    for path in &event.paths {
+        if let Some(path) = path.to_str() {
+            if path.contains(".git") {
+                return;
+            }
+        }
+    }
+
+    println!("File change event: {:?}", event);
 }
 
 pub fn start() {
