@@ -19,6 +19,8 @@ enum Command {
         #[structopt(help = "The folder to backup when it is updated")]
         folder: String,
     },
+    #[structopt(about = "List the watched folders")]
+    List,
     #[structopt(about = "Start to periodically backup the watched folders")]
     Run,
     #[structopt(about = "Store the Personal Access Token")]
@@ -34,6 +36,9 @@ fn main() {
     match args.cmd {
         Command::Watch { folder } => {
             config_manager::store_watched_folder(&folder);
+        }
+        Command::List => {
+            config_manager::list_watched_folder();
         }
         Command::Run => {
             println!("Start to periodically backup the watched folders");

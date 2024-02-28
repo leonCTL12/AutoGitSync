@@ -19,6 +19,14 @@ pub fn store_watched_folder(folder: &str) {
     }
 }
 
+pub fn list_watched_folder() {
+    let config = read_config();
+    println!("Watching Folders:");
+    for folder in config.watching_folders {
+        println!("{}", folder);
+    }
+}
+
 //Read-only, by the executor
 pub fn read_config() -> Config {
     //Step 1: Get Config Path for different os
