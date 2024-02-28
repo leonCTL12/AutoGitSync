@@ -24,6 +24,10 @@ impl Config {
         self.watching_folders.insert(folder);
     }
 
+    pub fn remove_watching_folder(&mut self, folder: &str) {
+        self.watching_folders.remove(folder);
+    }
+
     pub fn update_encrypted_access_token(&mut self) {
         todo!("Implement this")
     }

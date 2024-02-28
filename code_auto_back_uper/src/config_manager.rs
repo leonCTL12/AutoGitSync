@@ -5,6 +5,15 @@ use crate::utilities::file_system::{
     write_string_to_file,
 };
 
+pub fn remove_watched_folder(folder: &str) {
+    let mut config = read_config();
+    config.remove_watching_folder(folder);
+    match write_config(config) {
+        Ok(_) => println!("{} is removed successfully!", folder),
+        Err(e) => panic!("Failed to remove {}: {}", folder, e),
+    }
+}
+
 pub fn store_watched_folder(folder: &str) {
     if !is_git_repository(folder) {
         println!("{} is not a git repository, it will be ignored", folder);
@@ -21,6 +30,11 @@ pub fn store_watched_folder(folder: &str) {
 
 pub fn list_watched_folder() {
     let config = read_config();
+    if config.watching_folders.len() == 0 {
+        println!("No folder is being watched");
+        return;
+    }
+
     println!("Watching Folders:");
     for folder in config.watching_folders {
         println!("{}", folder);
