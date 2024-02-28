@@ -9,12 +9,12 @@ pub fn remove_watched_folder(folder: &str) {
     let mut config = read_config();
     config.remove_watching_folder(folder);
     match write_config(config) {
-        Ok(_) => println!("{} is removed successfully!", folder),
+        Ok(_) => println!("config is updated successfully!"),
         Err(e) => panic!("Failed to remove {}: {}", folder, e),
     }
 }
 
-pub fn store_watched_folder(folder: &str) {
+pub fn add_watched_folder(folder: &str) {
     if !is_git_repository(folder) {
         println!("{} is not a git repository, it will be ignored", folder);
         return;
@@ -23,7 +23,7 @@ pub fn store_watched_folder(folder: &str) {
     let mut config = read_config();
     config.insert_watching_folder(folder.to_string());
     match write_config(config) {
-        Ok(_) => println!("{} is stored successfully!", folder),
+        Ok(_) => println!("config is updated successfully!"),
         Err(e) => panic!("Failed to store {}: {}", folder, e),
     }
 }

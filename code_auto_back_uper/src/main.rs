@@ -41,7 +41,7 @@ fn main() {
 
     match args.cmd {
         Command::Add { folder } => {
-            config_manager::store_watched_folder(&folder);
+            config_manager::add_watched_folder(&folder);
         }
         Command::List => {
             config_manager::list_watched_folder();

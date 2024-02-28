@@ -21,10 +21,21 @@ impl Config {
     }
 
     pub fn insert_watching_folder(&mut self, folder: String) {
+        if self.watching_folders.contains(&folder) {
+            println!("{} is already being watched", folder);
+        }
+
+        //But actually nothing will happen if you add an existing folder
         self.watching_folders.insert(folder);
     }
 
     pub fn remove_watching_folder(&mut self, folder: &str) {
+        if !self.watching_folders.contains(folder) {
+            println!("{} is not being watched", folder);
+            return;
+        }
+
+        //But actually nothing will happen if you remove a non-existing folder
         self.watching_folders.remove(folder);
     }
 
