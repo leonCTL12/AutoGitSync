@@ -35,13 +35,13 @@ enum Command {
     },
     #[structopt(about = "Start to periodically backup the watched folders")]
     Run,
-    #[structopt(about = "Set the ssh private key path")]
+    #[structopt(about = "Store the ssh private key path")]
     SetSSH {
         #[structopt(help = "The ssh private key path")]
         ssh_key_path: String,
     },
     #[structopt(about = "Store the Personal Access Token")]
-    Auth {
+    SetPAT {
         #[structopt(help = "The personal access token")]
         token: String,
     },
@@ -78,8 +78,8 @@ fn main() {
         Command::SetSSH { ssh_key_path } => {
             config_manager::set_ssh_key_path(ssh_key_path);
         }
-        Command::Auth { token } => {
-            //TODO Implement this
+        Command::SetPAT { token } => {
+            config_manager::set_pat(token);
         }
     }
 }

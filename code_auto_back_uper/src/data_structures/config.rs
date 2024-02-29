@@ -7,6 +7,7 @@ const DEFAULT_BACKUP_FREQUENCY: u64 = 5;
 #[derive(Serialize, Deserialize)]
 pub enum AuthMethod {
     SSHKey(String), //Storing the SSH key path instead of the SSH key content
+    PAT(String),    //Personal Access Token, TODO: encrypt it
 }
 
 #[derive(Serialize, Deserialize)]
@@ -55,7 +56,7 @@ impl Config {
     pub fn set_ssh_private_key_path(&mut self, path: String) {
         self.auth_method = AuthMethod::SSHKey(path);
     }
-    pub fn update_encrypted_access_token(&mut self) {
-        todo!("Implement this")
+    pub fn update_personal_access_token(&mut self, token: String) {
+        self.auth_method = AuthMethod::PAT(token);
     }
 }
