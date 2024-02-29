@@ -103,7 +103,10 @@ pub fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::
         Cred::ssh_key(
             username_from_url.unwrap(),
             None,
-            std::path::Path::new(&format!("{}/.ssh/id_rsa", std::env::var("HOME").unwrap())),
+            std::path::Path::new(&format!(
+                "{}/.ssh/gusto_mac_studio_personal",
+                std::env::var("HOME").unwrap()
+            )),
             None,
         )
     });
