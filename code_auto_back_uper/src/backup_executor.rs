@@ -59,10 +59,7 @@ fn backup_check(map: &mut HashMap<String, RepositoryInstance>) {
     }
 
     for repo_instance in map.values_mut() {
-        match repo_instance.perform_backup() {
-            Ok(_) => println!("Backup check done for {}", repo_instance.path),
-            Err(e) => println!("Backup failed: {}", e),
-        }
+        repo_instance.try_perform_backup()
     }
 }
 

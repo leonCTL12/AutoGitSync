@@ -32,7 +32,17 @@ impl RepositoryInstance {
         })
     }
 
-    pub fn perform_backup(&mut self) -> Result<(), git2::Error> {
+    pub fn try_perform_backup(&mut self) {
+        match self.perform_backup() {
+            Ok(_) => println!("Backup check done for {}", self.path),
+            Err(e) => {
+                println!("Failed to perform backup for {}: {}", self.path, e)
+                //TODO: restore the repo state properly
+            }
+        }
+    }
+
+    fn perform_backup(&mut self) -> Result<(), git2::Error> {
         if !self.should_perform_backup()? {
             return Ok(());
         }
@@ -107,7 +117,7 @@ impl RepositoryInstance {
         }
     }
 
-    fn restore_repo_state(&mut self, current_branch: String) -> Result<(), git2::Error> {
+    pub fn restore_repo_state(&mut self, current_branch: String) -> Result<(), git2::Error> {
         git2_api_wrapper::discard_local_change(&self.repo)?;
         git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch)?;
         git2_api_wrapper::try_apply_stash(&mut self.repo)?;
