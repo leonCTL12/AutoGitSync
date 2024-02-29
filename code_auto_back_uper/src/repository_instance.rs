@@ -108,6 +108,7 @@ impl RepositoryInstance {
     }
 
     fn restore_repo_state(&mut self, current_branch: String) -> Result<(), git2::Error> {
+        git2_api_wrapper::discard_local_change(&self.repo)?;
         git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch)?;
         git2_api_wrapper::try_apply_stash(&mut self.repo)?;
         git2_api_wrapper::delete_latest_stash(&mut self.repo)?;
