@@ -3,6 +3,8 @@ use git2::{
     Signature,
 };
 
+use crate::{config_manager, data_structures::config};
+
 pub fn get_current_branch_name(repo: &Repository) -> Result<String, git2::Error> {
     let head = repo.head()?;
     let branch = head.shorthand().unwrap_or("Unknown_branch");
@@ -99,11 +101,13 @@ pub fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::
     let mut remote = repo.find_remote("origin")?;
 
     let mut callbacks = RemoteCallbacks::new();
-    callbacks.credentials(|_url, username_from_url, _allowed_types| {
+    let config = config_manager::read_config();
+    let private_key_path = config.ssh_private_key_path;
+    callbacks.credentials(move |_url, username_from_url, _allowed_types| {
         Cred::ssh_key(
             username_from_url.unwrap(),
             None,
-            std::path::Path::new(&format!("{}/.ssh/id_rsa", std::env::var("HOME").unwrap())),
+            std::path::Path::new(&private_key_path),
             None,
         )
     });
