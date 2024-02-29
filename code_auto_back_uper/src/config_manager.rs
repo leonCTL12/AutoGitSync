@@ -30,7 +30,7 @@ pub fn add_watched_folder(folder: &str) {
 
 pub fn list_watched_folder() {
     let config = read_config();
-    if config.watching_folders.len() == 0 {
+    if config.watching_folders.is_empty() {
         println!("No folder is being watched");
         return;
     }

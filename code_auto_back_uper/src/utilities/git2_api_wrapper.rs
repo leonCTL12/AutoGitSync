@@ -115,9 +115,8 @@ pub fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::
             });
         }
         AuthMethod::PAT(token) => {
-            callbacks.credentials(move |_url, username_from_url, _allowed_types| {
-                Cred::userpass_plaintext("", &token)
-            });
+            callbacks
+                .credentials(move |_url, _, _allowed_types| Cred::userpass_plaintext("", &token));
         }
     };
 
