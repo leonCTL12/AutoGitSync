@@ -1,4 +1,7 @@
-use git2::{BranchType, Cred, PushOptions, RemoteCallbacks, Repository, ResetType, Signature};
+use git2::{
+    build::CheckoutBuilder, BranchType, Cred, PushOptions, RemoteCallbacks, Repository, ResetType,
+    Signature,
+};
 
 pub fn get_current_branch_name(repo: &Repository) -> Result<String, git2::Error> {
     let head = repo.head()?;
@@ -146,4 +149,13 @@ pub fn get_latest_backup_branch_name(repo: &Repository) -> Option<String> {
     }
 
     latest_backup_branch
+}
+
+pub fn discard_local_change(repo: &Repository) -> Result<(), git2::Error> {
+    let mut checkout_builder = CheckoutBuilder::new();
+    // This flag is required to discard changes.
+    checkout_builder.force();
+
+    repo.checkout_head(Some(&mut checkout_builder))?;
+    Ok(())
 }
