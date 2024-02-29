@@ -3,7 +3,10 @@ use git2::{
     Signature,
 };
 
-use crate::{config_manager, data_structures::config};
+use crate::{
+    config_manager,
+    data_structures::config::{self, AuthMethod},
+};
 
 pub fn get_current_branch_name(repo: &Repository) -> Result<String, git2::Error> {
     let head = repo.head()?;
@@ -102,15 +105,19 @@ pub fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::
 
     let mut callbacks = RemoteCallbacks::new();
     let config = config_manager::read_config();
-    let private_key_path = config.ssh_private_key_path;
-    callbacks.credentials(move |_url, username_from_url, _allowed_types| {
-        Cred::ssh_key(
-            username_from_url.unwrap(),
-            None,
-            std::path::Path::new(&private_key_path),
-            None,
-        )
-    });
+
+    match config.auth_method {
+        AuthMethod::SSHKey(ssh_private_key_path) => {
+            callbacks.credentials(move |_url, _username_from_url, _allowed_types| {
+                Cred::ssh_key(
+                    "git",
+                    None,
+                    std::path::Path::new(&ssh_private_key_path),
+                    None,
+                )
+            });
+        }
+    };
 
     let mut push_options = PushOptions::new();
     push_options.remote_callbacks(callbacks);

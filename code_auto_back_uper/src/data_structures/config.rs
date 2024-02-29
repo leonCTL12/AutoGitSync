@@ -5,11 +5,16 @@ const DEFAULT_CHANGE_DETECTION_BUFFER: u64 = 5;
 const DEFAULT_BACKUP_FREQUENCY: u64 = 5;
 
 #[derive(Serialize, Deserialize)]
+pub enum AuthMethod {
+    SSHKey(String), //Storing the SSH key path instead of the SSH key content
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct Config {
     pub watching_folders: HashSet<String>,
     pub backup_frequency: u64,
     pub change_detection_buffer: u64,
-    pub ssh_private_key_path: String,
+    pub auth_method: AuthMethod,
 }
 
 impl Config {
@@ -25,7 +30,7 @@ impl Config {
             watching_folders: HashSet::new(),
             backup_frequency: DEFAULT_BACKUP_FREQUENCY,
             change_detection_buffer: DEFAULT_CHANGE_DETECTION_BUFFER,
-            ssh_private_key_path: default_ssh_path,
+            auth_method: AuthMethod::SSHKey(default_ssh_path),
         }
     }
 
@@ -48,7 +53,7 @@ impl Config {
         self.watching_folders.remove(folder);
     }
     pub fn set_ssh_private_key_path(&mut self, path: String) {
-        self.ssh_private_key_path = path;
+        self.auth_method = AuthMethod::SSHKey(path);
     }
     pub fn update_encrypted_access_token(&mut self) {
         todo!("Implement this")
