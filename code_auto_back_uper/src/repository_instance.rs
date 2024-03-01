@@ -1,4 +1,5 @@
 use crate::backup_executor;
+use crate::utilities::copy_dir_api_wrapper;
 use crate::utilities::file_system;
 use crate::utilities::git2_api_wrapper;
 use chrono::{DateTime, Utc};
@@ -43,6 +44,8 @@ impl RepositoryInstance {
     }
 
     fn perform_backup(&mut self) -> Result<(), git2::Error> {
+        copy_dir_api_wrapper::copy_directory(&self.path);
+        return Ok(());
         if !self.should_perform_backup()? {
             return Ok(());
         }
