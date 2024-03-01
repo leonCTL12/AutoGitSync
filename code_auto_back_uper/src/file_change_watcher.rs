@@ -31,7 +31,7 @@ fn on_file_change_event(event: Event, tx: Sender<String>) {
             }
         }
     }
-    println!("File change event encountered!!!!!!");
+    // println!("File change event encountered!!!!!!");
     tx.send("File change event".to_string()).unwrap();
 }
 

@@ -3,6 +3,7 @@ mod config_manager;
 mod cross_platform_constant;
 mod data_structures;
 mod file_change_watcher;
+mod iced_gui;
 mod repository_instance;
 mod utilities;
 use structopt::StructOpt;
@@ -48,6 +49,9 @@ enum Command {
 }
 
 fn main() {
+    iced_gui::hello_world_popup::show_pop_up();
+    return;
+
     let args = Cli::from_args();
 
     match args.cmd {
