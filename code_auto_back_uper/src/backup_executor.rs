@@ -59,7 +59,7 @@ fn backup_check(map: &mut HashMap<String, RepositoryInstance>) {
     }
 
     for repo_instance in map.values_mut() {
-        repo_instance.try_perform_backup()
+        repo_instance.try_perform_backup();
     }
 }
 
