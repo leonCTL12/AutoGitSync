@@ -8,8 +8,9 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.34"
 dirs = "5.0.1"
+eframe = "0.26.2"
+egui = "0.26.2"
 git2 = "0.18.2"
-iced = "0.12.1"
 magic-crypt = "3.1.13"
 notify = "6.1.1"
 serde = { version = "1.0.197", features = ["derive"] }
