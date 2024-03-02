@@ -74,7 +74,7 @@ fn main() {
         }
         Command::Run => {
             println!("Start to periodically backup the watched folders");
-            backup_executor::start();
+            backup_executor::BackupExecutor::new().start();
         }
         Command::SetSSH { ssh_key_path } => {
             config_manager::set_ssh_key_path(ssh_key_path);

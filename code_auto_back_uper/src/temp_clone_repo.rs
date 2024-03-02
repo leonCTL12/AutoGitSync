@@ -36,10 +36,6 @@ impl TempCloneRepo {
     }
 
     pub fn perform_backup(&mut self) -> Result<(), git2::Error> {
-        if !self.should_perform_backup()? {
-            return Ok(());
-        }
-
         //Keep the reference of the current branch
         let current_branch = git2_api_wrapper::get_current_branch_name(&self.repo)?;
 
@@ -59,43 +55,12 @@ impl TempCloneRepo {
 
         git2_api_wrapper::push_to_remote(&self.repo, &backup_branch_name)?;
 
-        git2_api_wrapper::checkout_to_branch(&self.repo, &current_branch)?;
-
-        git2_api_wrapper::try_apply_stash(&mut self.repo)?;
-
-        git2_api_wrapper::delete_latest_stash(&mut self.repo)?;
+        self.self_destroy();
 
         Ok(())
     }
 
-    fn should_perform_backup(&mut self) -> Result<bool, git2::Error> {
-        let latest_branch_name = match git2_api_wrapper::get_latest_backup_branch_name(&self.repo) {
-            Some(branch_name) => branch_name,
-            None => {
-                return Ok(true);
-            }
-        };
-
-        git2_api_wrapper::stash_all_changes(&mut self.repo)?;
-
-        git2_api_wrapper::checkout_to_branch(&self.repo, &latest_branch_name)?;
-
-        if let Err(e) = git2_api_wrapper::try_apply_stash(&mut self.repo) {
-            if e.message() != "Conflict detected" {
-                return Err(e);
-            }
-            return Ok(true);
-        }
-
-        if !git2_api_wrapper::has_local_change(&self.repo)? {
-            println!("No need to backup");
-            return Ok(false);
-        }
-
-        Ok(true)
-    }
-
-    pub fn self_destroy(&self) -> std::io::Result<()> {
+    fn self_destroy(&self) -> std::io::Result<()> {
         std::fs::remove_dir_all(&self.path)
     }
 }

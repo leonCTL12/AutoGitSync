@@ -1,4 +1,5 @@
 use crate::config_manager;
+use chrono::{DateTime, Utc};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::Path;
 use std::sync::mpsc::Sender;
@@ -7,7 +8,23 @@ use std::time::Duration;
 
 //This whole file watcher script will be run in a separate thread
 
-fn create_file_watcher(tx: Sender<String>) -> Result<notify::RecommendedWatcher, notify::Error> {
+pub struct FileChangeSignal {
+    pub paths: Vec<String>,
+    pub timestamp: DateTime<Utc>,
+}
+
+impl FileChangeSignal {
+    pub fn new(path: Vec<String>, timestamp: DateTime<Utc>) -> FileChangeSignal {
+        FileChangeSignal {
+            paths: path,
+            timestamp,
+        }
+    }
+}
+
+fn create_file_watcher(
+    tx: Sender<FileChangeSignal>,
+) -> Result<notify::RecommendedWatcher, notify::Error> {
     let tx = tx.clone();
     notify::recommended_watcher(move |res| match res {
         Ok(event) => on_file_change_event(event, tx.clone()),
@@ -23,19 +40,24 @@ fn watch_directories(watcher: &mut RecommendedWatcher) -> notify::Result<()> {
     Ok(())
 }
 
-fn on_file_change_event(event: Event, tx: Sender<String>) {
+fn on_file_change_event(event: Event, tx: Sender<FileChangeSignal>) {
+    let mut paths: Vec<String> = Vec::new();
     for path in &event.paths {
         if let Some(path) = path.to_str() {
             if path.contains(".git") {
                 return;
             }
+            paths.push(path.to_string());
         }
     }
-    // println!("File change event encountered!!!!!!");
-    tx.send("File change event".to_string()).unwrap();
+
+    let signal = FileChangeSignal::new(paths, Utc::now());
+
+    //TODO: create a new file change signal!
+    tx.send(signal).unwrap();
 }
 
-pub fn start(tx: Sender<String>) {
+pub fn start(tx: Sender<FileChangeSignal>) {
     thread::spawn(move || {
         let mut watcher = match create_file_watcher(tx) {
             Ok(watcher) => watcher,

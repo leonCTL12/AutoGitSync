@@ -3,8 +3,9 @@ use crate::utilities::file_system;
 use chrono::{DateTime, Utc};
 
 pub struct RepositoryInstance {
-    pub path: String,
+    path: String,
     last_update_time: Option<DateTime<Utc>>,
+    dirty: bool,
 }
 
 impl RepositoryInstance {
@@ -20,11 +21,13 @@ impl RepositoryInstance {
         Ok(RepositoryInstance {
             path: repo_path.to_string(),
             last_update_time: None,
+            dirty: false, //by default, it is not dirty
         })
     }
 
     pub fn try_perform_backup(&mut self) -> Result<(), git2::Error> {
-        if !self.is_time_to_backup() {
+        if !self.should_perform_backup() {
+            println!("No need to perform backup for {}", self.path);
             return Ok(());
         }
         let mut temp_clone_repo = TempCloneRepo::new(&self.path)?;
@@ -33,27 +36,37 @@ impl RepositoryInstance {
             Ok(_) => {
                 println!("Backup done for {}", self.path);
                 self.last_update_time = Some(Utc::now());
-                temp_clone_repo.self_destroy();
+                self.dirty = false;
                 Ok(())
             }
             Err(e) => {
                 println!("Failed to perform backup for {}: {}", self.path, e);
-                temp_clone_repo.self_destroy();
                 Err(e)
             }
         }
     }
 
-    fn is_time_to_backup(&self) -> bool {
-        let config = crate::config_manager::read_config();
+    pub fn set_dirty_flag(&mut self, date_time: DateTime<Utc>) {
+        self.dirty = true;
+        self.last_update_time = Some(date_time);
+    }
 
-        match self.last_update_time {
-            None => true,
-            Some(last_update_time) => {
-                let current_time = Utc::now();
-                let duration = current_time.signed_duration_since(last_update_time);
-                duration.num_minutes() >= config.change_detection_buffer as i64
-            }
+    fn should_perform_backup(&self) -> bool {
+        if !self.dirty {
+            return false;
         }
+
+        // let config = crate::config_manager::read_config();
+
+        // match self.last_update_time {
+        //     None => true,
+        //     Some(last_update_time) => {
+        //         let current_time = Utc::now();
+        //         let duration = current_time.signed_duration_since(last_update_time);
+        //         duration.num_minutes() >= config.change_detection_buffer as i64
+        //     }
+        // }
+
+        return true;
     }
 }

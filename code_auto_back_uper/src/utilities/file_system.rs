@@ -21,10 +21,7 @@ pub fn read_file_to_string(path: &str) -> Result<String, String> {
 
     let mut s = String::new();
     match file.read_to_string(&mut s) {
-        Ok(_) => {
-            println!("file is read successfully!");
-            Ok(s)
-        }
+        Ok(_) => Ok(s),
         Err(e) => {
             panic!("Failed to read the config file : {}", e)
         }
