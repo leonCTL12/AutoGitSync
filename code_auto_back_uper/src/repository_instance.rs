@@ -1,4 +1,4 @@
-use crate::backup_runtime::BackupRuntime;
+use crate::temp_clone_repo::TempCloneRepo;
 use crate::utilities::file_system;
 use chrono::{DateTime, Utc};
 
@@ -27,17 +27,18 @@ impl RepositoryInstance {
         if !self.is_time_to_backup() {
             return Ok(());
         }
-        let mut backup_runtime = BackupRuntime::new(&self.path)?;
+        let mut temp_clone_repo = TempCloneRepo::new(&self.path)?;
 
-        match backup_runtime.perform_backup() {
+        match temp_clone_repo.perform_backup() {
             Ok(_) => {
                 println!("Backup done for {}", self.path);
                 self.last_update_time = Some(Utc::now());
+                temp_clone_repo.self_destroy();
                 Ok(())
             }
             Err(e) => {
                 println!("Failed to perform backup for {}: {}", self.path, e);
-                //TODO: restore the repo state properly
+                temp_clone_repo.self_destroy();
                 Err(e)
             }
         }
