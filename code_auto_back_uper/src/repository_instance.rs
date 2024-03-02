@@ -35,7 +35,7 @@ impl RepositoryInstance {
         match temp_clone_repo.perform_backup() {
             Ok(_) => {
                 println!("Backup done for {}", self.path);
-                self.last_update_time = Some(Utc::now());
+                self.last_update_time = None;
                 self.dirty = false;
                 Ok(())
             }
@@ -56,17 +56,17 @@ impl RepositoryInstance {
             return false;
         }
 
-        // let config = crate::config_manager::read_config();
+        let config = crate::config_manager::read_config();
 
-        // match self.last_update_time {
-        //     None => true,
-        //     Some(last_update_time) => {
-        //         let current_time = Utc::now();
-        //         let duration = current_time.signed_duration_since(last_update_time);
-        //         duration.num_minutes() >= config.change_detection_buffer as i64
-        //     }
-        // }
-
-        return true;
+        match self.last_update_time {
+            None => false,
+            Some(last_update_time) => {
+                let current_time = Utc::now();
+                let duration = current_time
+                    .signed_duration_since(last_update_time)
+                    .num_seconds(); //this is second for testing purpose, it should be minutes instead
+                duration >= config.change_detection_buffer as i64
+            }
+        }
     }
 }

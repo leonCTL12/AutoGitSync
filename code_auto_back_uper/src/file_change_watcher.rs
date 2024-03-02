@@ -41,6 +41,7 @@ fn watch_directories(watcher: &mut RecommendedWatcher) -> notify::Result<()> {
 }
 
 fn on_file_change_event(event: Event, tx: Sender<FileChangeSignal>) {
+    println!("file change event: {:?}", event);
     let mut paths: Vec<String> = Vec::new();
     for path in &event.paths {
         if let Some(path) = path.to_str() {
