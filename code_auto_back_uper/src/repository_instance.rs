@@ -1,11 +1,15 @@
+use std::path::{self, Path};
+
 use crate::temp_clone_repo::TempCloneRepo;
 use crate::utilities::file_system;
 use chrono::{DateTime, Utc};
+use ignore::gitignore::Gitignore;
 
 pub struct RepositoryInstance {
     path: String,
     last_update_time: Option<DateTime<Utc>>,
     dirty: bool,
+    git_ignore: Gitignore,
 }
 
 impl RepositoryInstance {
@@ -18,11 +22,29 @@ impl RepositoryInstance {
             ));
         }
 
+        let git_ignore = match RepositoryInstance::create_gitignore(repo_path) {
+            Ok(git_ignore) => git_ignore,
+            Err(e) => return Err(e),
+        };
+
         Ok(RepositoryInstance {
             path: repo_path.to_string(),
             last_update_time: None,
             dirty: false, //by default, it is not dirty
+            git_ignore,
         })
+    }
+
+    fn create_gitignore(path: &str) -> Result<Gitignore, String> {
+        let gitignore_path = Path::new(path).join(".gitignore");
+        let git_ignore = Gitignore::new(gitignore_path);
+
+        if git_ignore.1.is_some() {
+            return Err(format!("Failed to create gitignore for {}", path));
+        }
+
+        let git_ignore = git_ignore.0;
+        Ok(git_ignore)
     }
 
     pub fn try_perform_backup(&mut self) -> Result<(), git2::Error> {
@@ -46,9 +68,20 @@ impl RepositoryInstance {
         }
     }
 
-    pub fn set_dirty_flag(&mut self, date_time: DateTime<Utc>) {
+    pub fn handle_file_change(&mut self, path: &String, date_time: DateTime<Utc>) {
+        let absolute_path = Path::new(path);
+        let relative_path = absolute_path.strip_prefix(&self.path).unwrap();
+
+        let is_ignored = self.git_ignore.matched(relative_path, false).is_ignore();
+
+        if is_ignored {
+            println!("{} is ignored", path);
+            return;
+        }
+
         self.dirty = true;
         self.last_update_time = Some(date_time);
+        println!("{} is updated", relative_path.to_str().unwrap());
     }
 
     fn should_perform_backup(&self) -> bool {

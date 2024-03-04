@@ -54,8 +54,7 @@ impl BackupExecutor {
         for (key, value) in &mut self.map {
             for path in &signal.paths {
                 if path.starts_with(key) {
-                    value.set_dirty_flag(signal.timestamp.clone());
-                    println!("{} is dirty", key);
+                    value.handle_file_change(path, signal.timestamp.clone());
                     return;
                 }
             }
