@@ -51,10 +51,10 @@ impl BackupExecutor {
 
     //Trade-off noted: this is not a pure function, yet it prevents cloning the map
     fn update_repo_instance_states(&mut self, signal: FileChangeSignal) {
-        for (key, value) in &mut self.map {
-            for path in &signal.paths {
-                if path.starts_with(key) {
-                    value.handle_file_change(path, signal.timestamp.clone());
+        for (repo_path, repo) in &mut self.map {
+            for file_path in &signal.paths {
+                if file_path.starts_with(repo_path) {
+                    repo.handle_file_change(file_path, signal.timestamp.clone());
                     return;
                 }
             }

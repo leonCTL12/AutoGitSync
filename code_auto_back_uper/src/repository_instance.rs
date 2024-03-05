@@ -3,10 +3,9 @@ use std::path::{self, Path};
 use crate::temp_clone_repo::TempCloneRepo;
 use crate::utilities::file_system;
 use chrono::{DateTime, Utc};
-use ignore::gitignore::Gitignore;
 
 pub struct RepositoryInstance {
-    path: String,
+    repo_path: String,
     last_update_time: Option<DateTime<Utc>>,
     dirty: bool,
     git_ignore: Gitignore,
@@ -28,7 +27,7 @@ impl RepositoryInstance {
         };
 
         Ok(RepositoryInstance {
-            path: repo_path.to_string(),
+            repo_path: repo_path.to_string(),
             last_update_time: None,
             dirty: false, //by default, it is not dirty
             git_ignore,
@@ -49,20 +48,20 @@ impl RepositoryInstance {
 
     pub fn try_perform_backup(&mut self) -> Result<(), git2::Error> {
         if !self.should_perform_backup() {
-            println!("No need to perform backup for {}", self.path);
+            println!("No need to perform backup for {}", self.repo_path);
             return Ok(());
         }
-        let mut temp_clone_repo = TempCloneRepo::new(&self.path)?;
+        let mut temp_clone_repo = TempCloneRepo::new(&self.repo_path)?;
 
         match temp_clone_repo.perform_backup() {
             Ok(_) => {
-                println!("Backup done for {}", self.path);
+                println!("Backup done for {}", self.repo_path);
                 self.last_update_time = None;
                 self.dirty = false;
                 Ok(())
             }
             Err(e) => {
-                println!("Failed to perform backup for {}: {}", self.path, e);
+                println!("Failed to perform backup for {}: {}", self.repo_path, e);
                 Err(e)
             }
         }
@@ -70,12 +69,15 @@ impl RepositoryInstance {
 
     pub fn handle_file_change(&mut self, path: &String, date_time: DateTime<Utc>) {
         let absolute_path = Path::new(path);
-        let relative_path = absolute_path.strip_prefix(&self.path).unwrap();
+        let relative_path = absolute_path.strip_prefix(&self.repo_path).unwrap();
 
         let is_ignored = self.git_ignore.matched(relative_path, false).is_ignore();
 
         if is_ignored {
             println!("{} is ignored", path);
+            return;
+        } else {
+            println!("{} is updated", path);
             return;
         }
 
