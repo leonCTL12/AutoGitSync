@@ -10,7 +10,7 @@ chrono = "0.4.34"
 copy_dir = "0.1.3"
 dirs = "5.0.1"
 git2 = "0.18.2"
-ignore = "0.4.22"
+gitignored = "0.4.0"
 magic-crypt = "3.1.13"
 notify = "6.1.1"
 serde = { version = "1.0.197", features = ["derive"] }
