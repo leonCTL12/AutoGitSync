@@ -1,14 +1,13 @@
-use std::path::{self, Path};
-
-use crate::temp_clone_repo::TempCloneRepo;
 use crate::utilities::file_system;
+use crate::{gitignore_wrapper::GitIgnoreWrapper, temp_clone_repo::TempCloneRepo};
 use chrono::{DateTime, Utc};
+use std::path::Path;
 
 pub struct RepositoryInstance {
     repo_path: String,
     last_update_time: Option<DateTime<Utc>>,
     dirty: bool,
-    git_ignore: Gitignore,
+    git_ignore: GitIgnoreWrapper,
 }
 
 impl RepositoryInstance {
@@ -21,10 +20,7 @@ impl RepositoryInstance {
             ));
         }
 
-        let git_ignore = match RepositoryInstance::create_gitignore(repo_path) {
-            Ok(git_ignore) => git_ignore,
-            Err(e) => return Err(e),
-        };
+        let git_ignore = GitIgnoreWrapper::new(Path::new(repo_path));
 
         Ok(RepositoryInstance {
             repo_path: repo_path.to_string(),
@@ -32,18 +28,6 @@ impl RepositoryInstance {
             dirty: false, //by default, it is not dirty
             git_ignore,
         })
-    }
-
-    fn create_gitignore(path: &str) -> Result<Gitignore, String> {
-        let gitignore_path = Path::new(path).join(".gitignore");
-        let git_ignore = Gitignore::new(gitignore_path);
-
-        if git_ignore.1.is_some() {
-            return Err(format!("Failed to create gitignore for {}", path));
-        }
-
-        let git_ignore = git_ignore.0;
-        Ok(git_ignore)
     }
 
     pub fn try_perform_backup(&mut self) -> Result<(), git2::Error> {
@@ -71,13 +55,11 @@ impl RepositoryInstance {
         let absolute_path = Path::new(path);
         let relative_path = absolute_path.strip_prefix(&self.repo_path).unwrap();
 
-        let is_ignored = self.git_ignore.matched(relative_path, false).is_ignore();
+        let is_ignored = self.git_ignore.query(relative_path);
+
+        return;
 
         if is_ignored {
-            println!("{} is ignored", path);
-            return;
-        } else {
-            println!("{} is updated", path);
             return;
         }
 

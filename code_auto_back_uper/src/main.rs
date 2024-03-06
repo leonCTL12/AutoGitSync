@@ -1,51 +1,87 @@
-use gitignored::Gitignore;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
-use std::{io, path::PathBuf};
+mod backup_executor;
+mod config_manager;
+mod cross_platform_constant;
+mod data_structures;
+mod file_change_watcher;
+mod gitignore_wrapper;
+mod repository_instance;
+mod temp_clone_repo;
+mod utilities;
+use structopt::StructOpt;
+use utilities::file_system;
+
+#[derive(StructOpt)]
+struct Cli {
+    #[structopt(subcommand)]
+    cmd: Command,
+}
+
+#[derive(StructOpt)]
+enum Command {
+    #[structopt(about = "Watches a Folder")]
+    Add {
+        #[structopt(help = "The folder to backup when it is updated")]
+        folder: String,
+    },
+    #[structopt(about = "Watch all the git repo in this folder (not recursive)")]
+    AddWorkspace {
+        #[structopt(help = "The root folder to watch all the git repos in it")]
+        folder: String,
+    },
+    #[structopt(about = "List the watched folders")]
+    List,
+    #[structopt(about = "Remove a watched folder")]
+    Remove {
+        #[structopt(help = "The folder to remove from the watch list")]
+        folder: String,
+    },
+    #[structopt(about = "Start to periodically backup the watched folders")]
+    Run,
+    #[structopt(about = "Store the ssh private key path")]
+    SetSSH {
+        #[structopt(help = "The ssh private key path")]
+        ssh_key_path: String,
+    },
+    #[structopt(about = "Store the Personal Access Token")]
+    SetPAT {
+        #[structopt(help = "The personal access token")]
+        token: String,
+    },
+}
+
 fn main() {
-    let mut ig = Gitignore::default();
+    let args = Cli::from_args();
 
-    let ignored_pattern =
-        read_git_ignore_file("/Users/leonchan/WorkSpace/Telepaste_BE/.gitignore").unwrap();
-    let slice_of_str: Vec<&str> = ignored_pattern.iter().map(|s| s.as_str()).collect();
-    let slice_of_str: &[&str] = &slice_of_str;
-
-    // Define the paths you want to check
-    let paths = vec![
-        "src/main.rs",
-       "target/debug/.fingerprint/telepaste_be-edd20ff822cb5555/bin-telepaste_be",
-       "target/debug/incremental/telepaste_be-2u8j4f837om8j/s-gu0355ge82-1qhet2m-95p2fc2jv0gikk6zg2eqyx22r",
-       "target/test/a.png",
-    ];
-
-    // Check each path
-    for path in paths {
-        if ig.ignores(&slice_of_str, ig.root.join(&path)) {
-            println!("{} is ignored", path);
-        } else {
-            println!("{} is not ignored", path);
+    match args.cmd {
+        Command::Add { folder } => {
+            config_manager::add_watched_folder(&folder);
+        }
+        Command::AddWorkspace { folder } => {
+            let repos = match file_system::get_sub_folders(&folder) {
+                Ok(repos) => repos,
+                Err(e) => {
+                    panic!("Failed to get sub folders: {}", e);
+                }
+            };
+            for repo in repos {
+                config_manager::add_watched_folder(&repo);
+            }
+        }
+        Command::List => {
+            config_manager::list_watched_folder();
+        }
+        Command::Remove { folder } => {
+            config_manager::remove_watched_folder(&folder);
+        }
+        Command::Run => {
+            println!("Start to periodically backup the watched folders");
+            backup_executor::BackupExecutor::new().start();
+        }
+        Command::SetSSH { ssh_key_path } => {
+            config_manager::set_ssh_key_path(ssh_key_path);
+        }
+        Command::SetPAT { token } => {
+            config_manager::set_pat(token);
         }
     }
-}
-fn read_git_ignore_file(file_path: &str) -> Result<Vec<String>, String> {
-    let file = match File::open(file_path) {
-        Ok(file) => file,
-        Err(_) => return Err(format!("Failed to open {}", file_path)),
-    };
-    let reader = io::BufReader::new(file);
-
-    let lines: Vec<String> = reader
-        .lines()
-        .filter_map(|line| {
-            let line = line.ok()?;
-            if line.starts_with('#') || line.is_empty() {
-                None
-            } else {
-                Some(line)
-            }
-        })
-        .collect();
-
-    Ok(lines)
 }

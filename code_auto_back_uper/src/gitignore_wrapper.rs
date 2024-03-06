@@ -1,0 +1,60 @@
+use gitignored::Gitignore;
+use std::fs::File;
+use std::io::BufRead;
+use std::path::Path;
+use std::{io, path::PathBuf};
+
+pub struct GitIgnoreWrapper {
+    gitignore: Gitignore<PathBuf>,
+    rules: Vec<String>,
+}
+
+impl GitIgnoreWrapper {
+    pub fn new(repo_path: &Path) -> GitIgnoreWrapper {
+        let ignore = Gitignore::default();
+        let ignored_pattern = match extract_rules_from_gitignore(repo_path) {
+            Ok(ignored_pattern) => ignored_pattern,
+            Err(e) => {
+                panic!("Failed to extract rules from .gitignore: {}", e);
+            }
+        };
+
+        GitIgnoreWrapper {
+            gitignore: ignore,
+            rules: ignored_pattern,
+        }
+    }
+
+    pub fn query(&mut self, path: &Path) -> bool {
+        //Convert Vec<String> to &[&str]
+        let rules: Vec<&str> = self.rules.iter().map(|s| s.as_str()).collect();
+        let rules: &[&str] = &rules;
+        let ignored = self
+            .gitignore
+            .ignores(rules, self.gitignore.root.join(&path));
+        println!("{} is ignored: {}", path.display(), ignored);
+        ignored
+    }
+}
+
+fn extract_rules_from_gitignore(repo_path: &Path) -> Result<Vec<String>, String> {
+    let file = match File::open(repo_path.join(".gitignore")) {
+        Ok(file) => file,
+        Err(_) => return Err(format!("Failed to open {}", repo_path.display())),
+    };
+    let reader = io::BufReader::new(file);
+
+    let lines: Vec<String> = reader
+        .lines()
+        .filter_map(|line| {
+            let line = line.ok()?;
+            if line.starts_with('#') || line.is_empty() {
+                None
+            } else {
+                Some(line)
+            }
+        })
+        .collect();
+
+    Ok(lines)
+}
