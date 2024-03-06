@@ -11,6 +11,7 @@ pub struct GitIgnoreWrapper {
 
 impl GitIgnoreWrapper {
     pub fn new(repo_path: PathBuf) -> GitIgnoreWrapper {
+        println!("Repo path: {}", repo_path.display());
         let ignore: Gitignore<PathBuf> = Gitignore::new(repo_path.clone(), true, true);
         let ignored_pattern = match extract_rules_from_gitignore(&repo_path) {
             Ok(ignored_pattern) => ignored_pattern,

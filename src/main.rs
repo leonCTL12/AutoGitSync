@@ -7,13 +7,13 @@ use std::{io, path::PathBuf};
 fn main() {
     println!("{}", env::current_dir().unwrap().display());
     let mut ig = Gitignore::new(
-        Path::new("/Users/leonchan/WorkSpace/Telepaste_BE"),
+        Path::new("/Users/leonchan/Workspace/AutoGitSync"),
         true,
         true,
     );
 
     let ignored_pattern =
-        read_git_ignore_file("/Users/leonchan/WorkSpace/Telepaste_BE/.gitignore").unwrap();
+        read_git_ignore_file("/Users/leonchan/Workspace/AutoGitSync/.gitignore").unwrap();
     let slice_of_str: Vec<&str> = ignored_pattern.iter().map(|s| s.as_str()).collect();
     let slice_of_str: &[&str] = &slice_of_str;
 
