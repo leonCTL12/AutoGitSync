@@ -27,15 +27,10 @@ impl GitIgnoreWrapper {
     }
 
     pub fn query(&mut self, path: &Path) -> bool {
-        // let combined_path = self.gitignore.root.join(&path);
-        let combined_path = path;
         //Convert Vec<String> to &[&str]
         let rules: Vec<&str> = self.rules.iter().map(|s| s.as_str()).collect();
         let rules: &[&str] = &rules;
-        let ignored = self.gitignore.ignores(rules, &combined_path);
-
-        println!("{} is ignored: {}", combined_path.display(), ignored);
-        ignored
+        self.gitignore.ignores(rules, &path)
     }
 }
 

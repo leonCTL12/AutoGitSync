@@ -53,16 +53,13 @@ impl RepositoryInstance {
 
     pub fn handle_file_change(&mut self, path: &String, date_time: DateTime<Utc>) {
         let absolute_path = Path::new(path);
-        let relative_path = absolute_path.strip_prefix(&self.repo_path).unwrap();
-
         let is_ignored = self.git_ignore.query(absolute_path);
-
-        return;
 
         if is_ignored {
             return;
         }
 
+        println!("{} is changed", path);
         self.dirty = true;
         self.last_update_time = Some(date_time);
     }
