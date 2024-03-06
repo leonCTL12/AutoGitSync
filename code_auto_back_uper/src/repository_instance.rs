@@ -55,7 +55,7 @@ impl RepositoryInstance {
         let absolute_path = Path::new(path);
         let relative_path = absolute_path.strip_prefix(&self.repo_path).unwrap();
 
-        let is_ignored = self.git_ignore.query(relative_path);
+        let is_ignored = self.git_ignore.query(absolute_path);
 
         return;
 
@@ -65,7 +65,6 @@ impl RepositoryInstance {
 
         self.dirty = true;
         self.last_update_time = Some(date_time);
-        println!("{} is updated", relative_path.to_str().unwrap());
     }
 
     fn should_perform_backup(&self) -> bool {
