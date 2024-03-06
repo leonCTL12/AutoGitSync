@@ -1,7 +1,7 @@
 use crate::utilities::file_system;
 use crate::{gitignore_wrapper::GitIgnoreWrapper, temp_clone_repo::TempCloneRepo};
 use chrono::{DateTime, Utc};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub struct RepositoryInstance {
     repo_path: String,
@@ -20,7 +20,7 @@ impl RepositoryInstance {
             ));
         }
 
-        let git_ignore = GitIgnoreWrapper::new(Path::new(repo_path));
+        let git_ignore = GitIgnoreWrapper::new(Path::new(repo_path).to_path_buf());
 
         Ok(RepositoryInstance {
             repo_path: repo_path.to_string(),

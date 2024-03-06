@@ -10,9 +10,9 @@ pub struct GitIgnoreWrapper {
 }
 
 impl GitIgnoreWrapper {
-    pub fn new(repo_path: &Path) -> GitIgnoreWrapper {
-        let ignore = Gitignore::default();
-        let ignored_pattern = match extract_rules_from_gitignore(repo_path) {
+    pub fn new(repo_path: PathBuf) -> GitIgnoreWrapper {
+        let ignore: Gitignore<PathBuf> = Gitignore::new(repo_path.clone(), true, true);
+        let ignored_pattern = match extract_rules_from_gitignore(&repo_path) {
             Ok(ignored_pattern) => ignored_pattern,
             Err(e) => {
                 panic!("Failed to extract rules from .gitignore: {}", e);
@@ -38,7 +38,7 @@ impl GitIgnoreWrapper {
     }
 }
 
-fn extract_rules_from_gitignore(repo_path: &Path) -> Result<Vec<String>, String> {
+fn extract_rules_from_gitignore(repo_path: &PathBuf) -> Result<Vec<String>, String> {
     let file = match File::open(repo_path.join(".gitignore")) {
         Ok(file) => file,
         Err(_) => return Err(format!("Failed to open {}", repo_path.display())),
