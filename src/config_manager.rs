@@ -41,24 +41,6 @@ pub fn list_watched_folder() {
     }
 }
 
-pub fn set_ssh_key_path(ssh_key_path: String) {
-    let mut config = read_config();
-    config.set_ssh_private_key_path(ssh_key_path);
-    match write_config(config) {
-        Ok(_) => println!("config is updated successfully!"),
-        Err(e) => panic!("Failed to store ssh key path: {}", e),
-    }
-}
-
-pub fn set_pat(token: String) {
-    let mut config = read_config();
-    config.update_personal_access_token(token);
-    match write_config(config) {
-        Ok(_) => println!("config is updated successfully!"),
-        Err(e) => panic!("Failed to store PAT: {}", e),
-    }
-}
-
 //Read-only, by the executor
 pub fn read_config() -> Config {
     //Step 1: Get Config Path for different os

@@ -8,7 +8,7 @@ mod repository_instance;
 mod temp_clone_repo;
 mod utilities;
 use structopt::StructOpt;
-use utilities::file_system;
+use utilities::{file_system, secret_manager};
 
 #[derive(StructOpt)]
 struct Cli {
@@ -77,11 +77,13 @@ fn main() {
             println!("Start to periodically backup the watched folders");
             backup_executor::BackupExecutor::new().start();
         }
-        Command::SetSSH { ssh_key_path } => {
-            config_manager::set_ssh_key_path(ssh_key_path);
-        }
-        Command::SetPAT { token } => {
-            config_manager::set_pat(token);
-        }
+        Command::SetSSH { ssh_key_path } => match secret_manager::set_ssh_key_path(&ssh_key_path) {
+            Ok(_) => println!("SSH private key path is stored successfully!"),
+            Err(e) => println!("Failed to store the ssh private key path: {}", e),
+        },
+        Command::SetPAT { token } => match secret_manager::set_personal_access_token(&token) {
+            Ok(_) => println!("Personal Access Token is stored successfully!"),
+            Err(e) => println!("Failed to store the personal access token: {}", e),
+        },
     }
 }

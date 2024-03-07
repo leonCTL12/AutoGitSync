@@ -4,6 +4,7 @@ use git2::{
 };
 
 use crate::config_manager;
+use crate::utilities::secret_manager;
 
 #[derive(Debug)]
 pub enum AuthType {
@@ -115,7 +116,15 @@ pub fn push_to_remote(
 
     match auth_type {
         AuthType::SSH => {
-            let ssh_private_key_path = config.ssh_key_path;
+            let ssh_private_key_path = match secret_manager::get_ssh_key_path() {
+                Ok(path) => path,
+                Err(_) => {
+                    println!("Failed to get the ssh private key path");
+                    return Err(git2::Error::from_str(
+                        "Failed to get the ssh private key path",
+                    ));
+                }
+            };
             callbacks.credentials(move |_url, _username_from_url, _allowed_types| {
                 Cred::ssh_key(
                     "git",
@@ -126,7 +135,15 @@ pub fn push_to_remote(
             });
         }
         AuthType::PAT => {
-            let token = config.personal_access_token;
+            let token = match secret_manager::get_personal_access_token() {
+                Ok(token) => token,
+                Err(_) => {
+                    println!("Failed to get the personal access token");
+                    return Err(git2::Error::from_str(
+                        "Failed to get the personal access token",
+                    ));
+                }
+            };
             callbacks.credentials(move |_url, _, _allowed_types| {
                 Cred::userpass_plaintext(&token, &token)
             });
