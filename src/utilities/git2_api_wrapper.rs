@@ -3,7 +3,13 @@ use git2::{
     Signature,
 };
 
-use crate::{config_manager, data_structures::config::AuthMethod};
+use crate::config_manager;
+
+#[derive(Debug)]
+pub enum AuthType {
+    SSH,
+    PAT,
+}
 
 pub fn get_current_branch_name(repo: &Repository) -> Result<String, git2::Error> {
     let head = repo.head()?;
@@ -97,14 +103,19 @@ pub fn commit_all_changes(repo: &mut Repository) -> Result<(), git2::Error> {
     Ok(())
 }
 
-pub fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::Error> {
+pub fn push_to_remote(
+    repo: &Repository,
+    branch_name: &str,
+    auth_type: &AuthType,
+) -> Result<(), git2::Error> {
     let mut remote = repo.find_remote("origin")?;
 
     let mut callbacks = RemoteCallbacks::new();
     let config = config_manager::read_config();
 
-    match config.auth_method {
-        AuthMethod::SSHKey(ssh_private_key_path) => {
+    match auth_type {
+        AuthType::SSH => {
+            let ssh_private_key_path = config.ssh_key_path;
             callbacks.credentials(move |_url, _username_from_url, _allowed_types| {
                 Cred::ssh_key(
                     "git",
@@ -114,9 +125,11 @@ pub fn push_to_remote(repo: &Repository, branch_name: &str) -> Result<(), git2::
                 )
             });
         }
-        AuthMethod::PAT(token) => {
-            callbacks
-                .credentials(move |_url, _, _allowed_types| Cred::userpass_plaintext("", &token));
+        AuthType::PAT => {
+            let token = config.personal_access_token;
+            callbacks.credentials(move |_url, _, _allowed_types| {
+                Cred::userpass_plaintext(&token, &token)
+            });
         }
     };
 

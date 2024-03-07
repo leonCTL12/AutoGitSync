@@ -2,12 +2,16 @@ use git2::Repository;
 
 use crate::{
     backup_executor,
-    utilities::{copy_dir_api_wrapper, git2_api_wrapper},
+    utilities::{
+        copy_dir_api_wrapper,
+        git2_api_wrapper::{self, AuthType},
+    },
 };
 
 pub struct TempCloneRepo {
     pub repo: Repository,
     pub path: String,
+    pub auth_type: AuthType,
 }
 
 impl TempCloneRepo {
@@ -29,9 +33,22 @@ impl TempCloneRepo {
             }
         };
 
+        let auth_type = match get_auth_type(&repo) {
+            Ok(auth_type) => auth_type,
+            Err(e) => {
+                return Err(git2::Error::from_str(&format!(
+                    "Failed to get the auth type: {}",
+                    e
+                )));
+            }
+        };
+
+        println!("{} is a {:?} repo", temp_clone_path, auth_type);
+
         Ok(TempCloneRepo {
             repo: repo,
             path: temp_clone_path,
+            auth_type: auth_type,
         })
     }
 
@@ -53,7 +70,7 @@ impl TempCloneRepo {
 
         git2_api_wrapper::commit_all_changes(&mut self.repo)?;
 
-        git2_api_wrapper::push_to_remote(&self.repo, &backup_branch_name)?;
+        git2_api_wrapper::push_to_remote(&self.repo, &backup_branch_name, &self.auth_type)?;
 
         self.self_destroy();
 
@@ -63,4 +80,35 @@ impl TempCloneRepo {
     fn self_destroy(&self) -> std::io::Result<()> {
         std::fs::remove_dir_all(&self.path)
     }
+}
+
+fn get_auth_type(repo: &Repository) -> Result<AuthType, String> {
+    // Get all remotes
+    let remotes = match repo.remotes() {
+        Ok(remotes) => remotes,
+        Err(e) => panic!("failed to get remotes: {}", e),
+    };
+
+    for remote in remotes.iter() {
+        let remote_name = match remote {
+            Some(remote) => remote,
+            None => continue,
+        };
+
+        let url = match repo.find_remote(remote_name) {
+            Ok(remote) => match remote.url() {
+                Some(url) => url.to_string(),
+                None => continue,
+            },
+            Err(e) => continue,
+        };
+
+        if url.starts_with("https") {
+            return Ok(AuthType::PAT);
+        } else if url.starts_with("git@") {
+            return Ok(AuthType::SSH);
+        }
+    }
+
+    Err("Undefined Auth type".to_string())
 }
