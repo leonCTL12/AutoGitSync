@@ -91,7 +91,12 @@ impl BackupExecutor {
         println!("Performing backup check");
 
         for repo_instance in &mut self.map.values_mut() {
-            repo_instance.try_perform_backup();
+            match repo_instance.try_perform_backup() {
+                Ok(_) => {}
+                Err(e) => {
+                    println!("Failed to perform backup: {}", e);
+                }
+            }
         }
     }
 }
