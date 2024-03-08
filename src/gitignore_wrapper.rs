@@ -30,11 +30,11 @@ impl GitIgnoreWrapper {
         //Convert Vec<String> to &[&str]
         let rules: Vec<&str> = self.rules.iter().map(|s| s.as_str()).collect();
         let rules: &[&str] = &rules;
-        self.gitignore.ignores(rules, &path)
+        self.gitignore.ignores(rules, path)
     }
 }
 
-fn extract_rules_from_gitignore(repo_path: &PathBuf) -> Result<Vec<String>, String> {
+fn extract_rules_from_gitignore(repo_path: &Path) -> Result<Vec<String>, String> {
     let file = match File::open(repo_path.join(".gitignore")) {
         Ok(file) => file,
         Err(_) => return Err(format!("Failed to open {}", repo_path.display())),

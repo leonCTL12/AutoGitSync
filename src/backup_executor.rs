@@ -29,15 +29,14 @@ impl BackupExecutor {
             }
 
             //To handle the disconnect case properly
-            match rx.try_recv() {
-                Err(e) => match e {
+            if let Err(e) = rx.try_recv() {
+                match e {
                     std::sync::mpsc::TryRecvError::Empty => {}
                     std::sync::mpsc::TryRecvError::Disconnected => {
                         println!("File change event channel disconnected");
                         return;
                     }
-                },
-                _ => {}
+                }
             }
 
             self.update_map();
@@ -54,7 +53,7 @@ impl BackupExecutor {
         for (repo_path, repo) in &mut self.map {
             for file_path in &signal.paths {
                 if file_path.starts_with(repo_path) {
-                    repo.handle_file_change(file_path, signal.timestamp.clone());
+                    repo.handle_file_change(file_path, signal.timestamp);
                     return;
                 }
             }

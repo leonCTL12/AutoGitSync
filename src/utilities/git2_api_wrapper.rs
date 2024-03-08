@@ -3,7 +3,6 @@ use git2::{
     Signature,
 };
 
-use crate::config_manager;
 use crate::utilities::secret_manager;
 
 #[derive(Debug)]
@@ -112,7 +111,6 @@ pub fn push_to_remote(
     let mut remote = repo.find_remote("origin")?;
 
     let mut callbacks = RemoteCallbacks::new();
-    let config = config_manager::read_config();
 
     match auth_type {
         AuthType::SSH => {

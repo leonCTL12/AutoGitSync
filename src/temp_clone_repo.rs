@@ -46,9 +46,9 @@ impl TempCloneRepo {
         println!("{} is a {:?} repo", temp_clone_path, auth_type);
 
         Ok(TempCloneRepo {
-            repo: repo,
+            repo,
             path: temp_clone_path,
-            auth_type: auth_type,
+            auth_type,
         })
     }
 
@@ -105,7 +105,7 @@ fn get_auth_type(repo: &Repository) -> Result<AuthType, String> {
                 Some(url) => url.to_string(),
                 None => continue,
             },
-            Err(e) => continue,
+            Err(_) => continue,
         };
 
         if url.starts_with("https") {
