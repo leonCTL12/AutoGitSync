@@ -47,6 +47,10 @@ enum Command {
         #[structopt(help = "The personal access token")]
         token: String,
     },
+    #[structopt(about = "Delete the stored ssh private key path")]
+    DeleteSSH,
+    #[structopt(about = "Delete the stored Personal Access Token")]
+    DeletePAT,
 }
 
 fn main() {
@@ -90,6 +94,14 @@ fn main() {
         Command::SetPAT { token } => match secret_manager::set_personal_access_token(&token) {
             Ok(_) => println!("Personal Access Token is stored successfully!"),
             Err(e) => println!("Failed to store the personal access token: {}", e),
+        },
+        Command::DeleteSSH => match secret_manager::delete_ssh_key_path() {
+            Ok(_) => println!("SSH private key path is deleted successfully!"),
+            Err(e) => println!("Failed to delete the ssh private key path: {}", e),
+        },
+        Command::DeletePAT => match secret_manager::delete_personal_access_token() {
+            Ok(_) => println!("Personal Access Token is deleted successfully!"),
+            Err(e) => println!("Failed to delete the personal access token: {}", e),
         },
     }
 }
