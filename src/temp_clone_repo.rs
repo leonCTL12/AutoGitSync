@@ -72,17 +72,10 @@ impl TempCloneRepo {
 
         git2_api_wrapper::push_to_remote(&self.repo, &backup_branch_name, &self.auth_type)?;
 
-        match self.self_destroy() {
-            Ok(_) => {}
-            Err(e) => {
-                println!("Failed to delete the temp clone repo: {}", e);
-            }
-        }
-
         Ok(())
     }
 
-    fn self_destroy(&self) -> std::io::Result<()> {
+    pub fn clean_temp_clone_folder(&self) -> std::io::Result<()> {
         std::fs::remove_dir_all(&self.path)
     }
 }

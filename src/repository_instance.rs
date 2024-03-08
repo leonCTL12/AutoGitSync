@@ -37,7 +37,16 @@ impl RepositoryInstance {
         }
         let mut temp_clone_repo = TempCloneRepo::new(&self.repo_path)?;
 
-        match temp_clone_repo.perform_backup() {
+        let result = temp_clone_repo.perform_backup();
+
+        match temp_clone_repo.clean_temp_clone_folder() {
+            Ok(_) => {}
+            Err(e) => {
+                println!("Failed to delete the temp clone repo: {}", e);
+            }
+        }
+
+        match result {
             Ok(_) => {
                 println!("Backup done for {}", self.repo_path);
                 self.last_update_time = None;
