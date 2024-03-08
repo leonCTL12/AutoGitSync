@@ -37,7 +37,10 @@ impl GitIgnoreWrapper {
 fn extract_rules_from_gitignore(repo_path: &Path) -> Result<Vec<String>, String> {
     let file = match File::open(repo_path.join(".gitignore")) {
         Ok(file) => file,
-        Err(_) => return Err(format!("Failed to open {}", repo_path.display())),
+        Err(_) => {
+            println!("No .gitignore found in {}", repo_path.display());
+            return Ok(Vec::new());
+        }
     };
     let reader = io::BufReader::new(file);
 
