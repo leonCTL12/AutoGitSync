@@ -1,7 +1,4 @@
-use git2::{
-    build::CheckoutBuilder, BranchType, Cred, PushOptions, RemoteCallbacks, Repository, ResetType,
-    Signature,
-};
+use git2::{BranchType, Cred, PushOptions, RemoteCallbacks, Repository, ResetType, Signature};
 
 use crate::utilities::secret_manager;
 
@@ -58,19 +55,6 @@ pub fn try_apply_stash(repo: &mut Repository) -> Result<(), git2::Error> {
     }
 
     Ok(())
-}
-
-pub fn delete_latest_stash(repo: &mut Repository) -> Result<(), git2::Error> {
-    let stash_index = 0; //The latest stash
-    repo.stash_drop(stash_index)?;
-    Ok(())
-}
-
-pub fn has_local_change(repo: &Repository) -> Result<bool, git2::Error> {
-    //Check for changes
-    let mut opts = git2::DiffOptions::new();
-    let diff = repo.diff_index_to_workdir(None, Some(&mut opts))?;
-    Ok(diff.deltas().count() > 0)
 }
 
 pub fn stage_all_changes(repo: &Repository) -> Result<(), git2::Error> {
@@ -156,46 +140,5 @@ pub fn push_to_remote(
         Some(&mut push_options),
     )?;
 
-    Ok(())
-}
-
-pub fn get_latest_backup_branch_name(repo: &Repository) -> Option<String> {
-    let branches = match repo.branches(Some(BranchType::Local)) {
-        Ok(branches) => branches,
-        Err(_) => return None,
-    };
-    let mut latest_backup_time = 0;
-    let mut latest_backup_branch: Option<String> = None;
-    for branch in branches {
-        let branch = match branch {
-            Ok((branch, _)) => branch,
-            Err(_) => continue,
-        };
-        let branch_name = match branch.name() {
-            Ok(Some(name)) => name,
-            _ => continue,
-        };
-        if branch_name.starts_with("backup/") {
-            let time = match branch.get().peel_to_commit() {
-                Ok(commit) => commit.time().seconds(),
-                _ => continue,
-            };
-            if time > latest_backup_time {
-                latest_backup_time = time;
-
-                latest_backup_branch = Some(branch_name.to_string());
-            }
-        }
-    }
-
-    latest_backup_branch
-}
-
-pub fn discard_local_change(repo: &Repository) -> Result<(), git2::Error> {
-    let mut checkout_builder = CheckoutBuilder::new();
-    // This flag is required to discard changes.
-    checkout_builder.force();
-
-    repo.checkout_head(Some(&mut checkout_builder))?;
     Ok(())
 }
