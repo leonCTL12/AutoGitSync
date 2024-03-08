@@ -23,7 +23,7 @@ pub fn add_watched_folder(folder: &str) {
     let mut config = read_config();
     config.insert_watching_folder(folder.to_string());
     match write_config(config) {
-        Ok(_) => println!("config is updated successfully!"),
+        Ok(_) => println!("{} is added to the watch list", folder),
         Err(e) => panic!("Failed to store {}: {}", folder, e),
     }
 }

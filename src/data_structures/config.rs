@@ -23,6 +23,7 @@ impl Config {
     pub fn insert_watching_folder(&mut self, folder: String) {
         if self.watching_folders.contains(&folder) {
             println!("{} is already being watched", folder);
+            return;
         }
 
         //But actually nothing will happen if you add an existing folder

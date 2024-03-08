@@ -60,9 +60,15 @@ fn main() {
             let repos = match file_system::get_sub_folders(&folder) {
                 Ok(repos) => repos,
                 Err(e) => {
-                    panic!("Failed to get sub folders: {}", e);
+                    println!("Failed to get sub folders: {}", e);
+                    return;
                 }
             };
+            if repos.is_empty() {
+                println!("No git repository is found in {}", folder);
+                return;
+            }
+
             for repo in repos {
                 config_manager::add_watched_folder(&repo);
             }

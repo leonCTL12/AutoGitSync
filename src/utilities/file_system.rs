@@ -30,6 +30,9 @@ pub fn read_file_to_string(path: &str) -> Result<String, String> {
 
 pub fn get_sub_folders(root_path: &str) -> Result<Vec<String>, String> {
     let mut sub_folders = Vec::new();
+    if !is_path_exist(root_path) {
+        return Ok(sub_folders);
+    }
     for entry in match fs::read_dir(root_path) {
         Ok(entry) => entry,
         Err(e) => return Err(e.to_string()),
