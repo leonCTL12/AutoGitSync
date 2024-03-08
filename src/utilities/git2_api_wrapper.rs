@@ -7,8 +7,8 @@ use crate::utilities::secret_manager;
 
 #[derive(Debug)]
 pub enum AuthType {
-    SSH,
-    PAT,
+    Ssh,
+    Pat,
 }
 
 pub fn get_current_branch_name(repo: &Repository) -> Result<String, git2::Error> {
@@ -113,7 +113,7 @@ pub fn push_to_remote(
     let mut callbacks = RemoteCallbacks::new();
 
     match auth_type {
-        AuthType::SSH => {
+        AuthType::Ssh => {
             let ssh_private_key_path = match secret_manager::get_ssh_key_path() {
                 Ok(path) => path,
                 Err(_) => {
@@ -132,7 +132,7 @@ pub fn push_to_remote(
                 )
             });
         }
-        AuthType::PAT => {
+        AuthType::Pat => {
             let token = match secret_manager::get_personal_access_token() {
                 Ok(token) => token,
                 Err(_) => {

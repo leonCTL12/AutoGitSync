@@ -109,9 +109,9 @@ fn get_auth_type(repo: &Repository) -> Result<AuthType, String> {
         };
 
         if url.starts_with("https") {
-            return Ok(AuthType::PAT);
+            return Ok(AuthType::Pat);
         } else if url.starts_with("git@") {
-            return Ok(AuthType::SSH);
+            return Ok(AuthType::Ssh);
         }
     }
 
