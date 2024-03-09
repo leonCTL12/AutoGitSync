@@ -39,4 +39,8 @@ impl Config {
         //But actually nothing will happen if you remove a non-existing folder
         self.watching_folders.remove(folder);
     }
+
+    pub fn clean_watching_folders(&mut self) {
+        self.watching_folders.clear();
+    }
 }

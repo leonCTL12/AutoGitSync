@@ -35,6 +35,8 @@ enum Command {
         #[structopt(help = "The folder to remove from the watch list")]
         folder: String,
     },
+    #[structopt(about = "Remove all the watched folders")]
+    Clean,
     #[structopt(about = "Start to periodically backup the watched folders")]
     Run,
     #[structopt(about = "Store the ssh private key path")]
@@ -82,6 +84,9 @@ fn main() {
         }
         Command::Remove { folder } => {
             config_manager::remove_watched_folder(&folder);
+        }
+        Command::Clean => {
+            config_manager::clean_watched_folder();
         }
         Command::Run => {
             println!("Start to periodically backup the watched folders");

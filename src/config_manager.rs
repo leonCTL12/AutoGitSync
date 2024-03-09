@@ -14,6 +14,15 @@ pub fn remove_watched_folder(folder: &str) {
     }
 }
 
+pub fn clean_watched_folder() {
+    let mut config = read_config();
+    config.clean_watching_folders();
+    match write_config(config) {
+        Ok(_) => println!("config is updated successfully!"),
+        Err(e) => panic!("Failed to clean the watch list: {}", e),
+    }
+}
+
 pub fn add_watched_folder(folder: &str) {
     if !is_git_repository(folder) {
         println!("{} is not a git repository, it will be ignored", folder);
