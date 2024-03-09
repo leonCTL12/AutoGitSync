@@ -75,7 +75,13 @@ impl TempCloneRepo {
         Ok(())
     }
 
-    pub fn clean_temp_clone_folder(&self) -> std::io::Result<()> {
+    pub fn clean_temp_clone_folder(self) -> std::io::Result<()> {
+        //this line of code is necessary
+        //Repository::open will lock the clone temp folder
+        //In windowsos, it will cause the remove_dir_all to fail
+        //But it is fine on macos
+        let _ = std::mem::drop(self.repo);
+        println!("About to remove {}", &self.path);
         std::fs::remove_dir_all(&self.path)
     }
 }
