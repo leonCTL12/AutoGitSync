@@ -6,6 +6,7 @@ mod file_change_watcher;
 mod gitignore_wrapper;
 mod repository_instance;
 mod temp_clone_repo;
+mod tool_initialiser;
 mod utilities;
 use structopt::StructOpt;
 use utilities::{file_system, secret_manager};
@@ -18,6 +19,8 @@ struct Cli {
 
 #[derive(StructOpt)]
 enum Command {
+    #[structopt(about = "Initialize the tools")]
+    Init,
     #[structopt(about = "Watches a Folder")]
     Add {
         #[structopt(help = "The folder to backup when it is updated")]
@@ -59,6 +62,9 @@ fn main() {
     let args = Cli::from_args();
 
     match args.cmd {
+        Command::Init => {
+            tool_initialiser::init();
+        }
         Command::Add { folder } => {
             config_manager::add_watched_folder(&folder);
         }
