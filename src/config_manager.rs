@@ -24,6 +24,11 @@ pub fn clean_watched_folder() {
 }
 
 pub fn add_watched_folder(folder: &str) {
+    if !is_path_exist(folder) {
+        println!("{} does not exist, it will be ignored", folder);
+        return;
+    }
+
     if !is_git_repository(folder) {
         println!("{} is not a git repository, it will be ignored", folder);
         return;
