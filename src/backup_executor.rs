@@ -1,7 +1,7 @@
 use crate::file_change_watcher::FileChangeSignal;
 use crate::repository_instance::RepositoryInstance;
 use crate::{config_manager, file_change_watcher};
-use chrono::Local;
+use chrono::{DateTime, Local};
 use std::collections::{hash_map::Entry::Vacant, HashMap};
 use std::sync::mpsc::{self, Receiver, Sender};
 use sys_info::hostname;
@@ -44,7 +44,10 @@ impl BackupExecutor {
 
             //Check everyloop so that it reacts to the new setting
             let config = config_manager::read_config();
-            std::thread::sleep(std::time::Duration::from_secs(config.backup_frequency));
+
+            let now: DateTime<Local> = Local::now();
+            println!("{}", now);
+            std::thread::sleep(std::time::Duration::from_secs(config.backup_frequency * 60));
         }
     }
 
