@@ -1,6 +1,9 @@
 use std::io::{self, Write};
 
-use crate::{config_manager, data_structures::config, utilities::secret_manager};
+use crate::{
+    config_manager,
+    utilities::{file_system, secret_manager},
+};
 
 pub fn init() {
     println!(
@@ -23,6 +26,12 @@ Please follow the prompts to set up your environment.\n
     config_manager::reset();
 
     let token = user_input_handler("Please enter your GitHub Personal Access Token:");
+    if token == "" {
+        println!(
+            "Personal access token cannot be empty.\nAbort init, please run init command to retry"
+        );
+        return;
+    }
     match secret_manager::set_personal_access_token(&token) {
         Ok(_) => println!("Personal Access Token is stored successfully!"),
         Err(e) => {
@@ -36,6 +45,15 @@ Please follow the prompts to set up your environment.\n
         .trim_matches('\'')
         .trim_matches('\"')
         .to_string();
+    if ssh_key_path == "" {
+        println!("Ssh key path can't be empty.\nAbort init, please run init command to retry");
+        return;
+    }
+    if !file_system::is_path_exist(&ssh_key_path) {
+        println!("The ssh private key path does not exist.\nAbort init, please run init command to retry");
+        return;
+    }
+
     match secret_manager::set_ssh_key_path(&ssh_key_path) {
         Ok(_) => println!("SSH private key path is stored successfully!"),
         Err(e) => {
