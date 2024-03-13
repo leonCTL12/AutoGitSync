@@ -42,12 +42,14 @@ impl BackupExecutor {
             self.update_map();
             self.backup_check();
 
-            //Check everyloop so that it reacts to the new setting
-            let config = config_manager::read_config();
+            let backup_frequency = if cfg!(debug_assertions) {
+                5
+            } else {
+                println!("using release frequency");
+                config_manager::read_config().backup_frequency * 60
+            };
 
-            let now: DateTime<Local> = Local::now();
-            println!("{}", now);
-            std::thread::sleep(std::time::Duration::from_secs(config.backup_frequency * 60));
+            std::thread::sleep(std::time::Duration::from_secs(backup_frequency));
         }
     }
 
