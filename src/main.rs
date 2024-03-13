@@ -61,6 +61,13 @@ enum Command {
         #[structopt(help = "The frequency of the backup in minutes")]
         frequency: u64,
     },
+    #[structopt(
+        about = "How long should the file considered as changed after the last change (in minutes)"
+    )]
+    SetChangeBuffer {
+        #[structopt(help = "The buffer time in minutes")]
+        buffer_time: u64,
+    },
 }
 
 fn main() {
@@ -121,6 +128,9 @@ fn main() {
         },
         Command::SetBackupFreq { frequency } => {
             config_manager::set_backup_frequency(frequency);
+        }
+        Command::SetChangeBuffer { buffer_time } => {
+            config_manager::set_change_buffer_time(buffer_time);
         }
     }
 }

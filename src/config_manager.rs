@@ -72,6 +72,15 @@ pub fn set_backup_frequency(frequency: u64) {
     }
 }
 
+pub fn set_change_buffer_time(buffer_time: u64) {
+    let mut config = read_config();
+    config.change_detection_buffer = buffer_time;
+    match write_config(config) {
+        Ok(_) => println!("config is updated successfully!"),
+        Err(e) => panic!("Failed to set change buffer time: {}", e),
+    }
+}
+
 //Read-only, by the executor
 pub fn read_config() -> Config {
     //Step 1: Get Config Path for different os

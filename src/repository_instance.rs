@@ -79,14 +79,17 @@ impl RepositoryInstance {
         }
 
         let config = crate::config_manager::read_config();
-
+        println!(
+            "Change detection buffer = {}",
+            config.change_detection_buffer
+        );
         match self.last_update_time {
             None => false,
             Some(last_update_time) => {
                 let current_time = Utc::now();
                 let duration = current_time
                     .signed_duration_since(last_update_time)
-                    .num_seconds(); //this is second for testing purpose, it should be minutes instead
+                    .num_minutes(); //this is second for testing purpose, it should be minutes instead
                 duration >= config.change_detection_buffer as i64
             }
         }
