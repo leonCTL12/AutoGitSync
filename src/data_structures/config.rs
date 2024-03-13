@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 //This is in minutes
-const DEFAULT_BACKUP_FREQUENCY: u64 = 1;
+const DEFAULT_BACKUP_FREQUENCY: u64 = 30;
 const DEFAULT_CHANGE_DETECTION_BUFFER: u64 = 5;
 
 #[derive(Serialize, Deserialize)]
