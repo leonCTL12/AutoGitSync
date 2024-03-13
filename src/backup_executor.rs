@@ -1,7 +1,7 @@
 use crate::file_change_watcher::FileChangeSignal;
 use crate::repository_instance::RepositoryInstance;
 use crate::{config_manager, file_change_watcher};
-use chrono::{DateTime, Local};
+use chrono::Local;
 use std::collections::{hash_map::Entry::Vacant, HashMap};
 use std::sync::mpsc::{self, Receiver, Sender};
 use sys_info::hostname;
@@ -45,7 +45,10 @@ impl BackupExecutor {
             let backup_frequency = if cfg!(debug_assertions) {
                 5
             } else {
-                println!("using release frequency");
+                println!(
+                    "Sleeping for {} seconds",
+                    config_manager::read_config().backup_frequency * 60
+                );
                 config_manager::read_config().backup_frequency * 60
             };
 

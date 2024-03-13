@@ -56,6 +56,11 @@ enum Command {
     DeleteSSH,
     #[structopt(about = "Delete the stored Personal Access Token")]
     DeletePAT,
+    #[structopt(about = "Set the frequency of the backup")]
+    SetBackupFreq {
+        #[structopt(help = "The frequency of the backup in minutes")]
+        frequency: u64,
+    },
 }
 
 fn main() {
@@ -114,5 +119,8 @@ fn main() {
             Ok(_) => println!("Personal Access Token is deleted successfully!"),
             Err(e) => println!("Failed to delete the personal access token: {}", e),
         },
+        Command::SetBackupFreq { frequency } => {
+            config_manager::set_backup_frequency(frequency);
+        }
     }
 }

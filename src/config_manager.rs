@@ -55,6 +55,15 @@ pub fn list_watched_folder() {
     }
 }
 
+pub fn set_backup_frequency(frequency: u64) {
+    let mut config = read_config();
+    config.backup_frequency = frequency;
+    match write_config(config) {
+        Ok(_) => println!("config is updated successfully!"),
+        Err(e) => panic!("Failed to set backup frequency: {}", e),
+    }
+}
+
 //Read-only, by the executor
 pub fn read_config() -> Config {
     //Step 1: Get Config Path for different os
