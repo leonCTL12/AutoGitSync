@@ -5,6 +5,14 @@ use crate::utilities::file_system::{
     write_string_to_file,
 };
 
+pub fn reset() {
+    let config = Config::new();
+    match write_config(config) {
+        Ok(_) => println!("Created a new config file successfully!"),
+        Err(e) => panic!("Failed to reset the config: {}", e),
+    }
+}
+
 pub fn remove_watched_folder(folder: &str) {
     let mut config = read_config();
     config.remove_watching_folder(folder);

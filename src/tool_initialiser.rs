@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::utilities::secret_manager;
+use crate::{config_manager, data_structures::config, utilities::secret_manager};
 
 pub fn init() {
     println!(
@@ -19,6 +19,8 @@ This tool will help you create backup branches and push your code to GitHub auto
 Please follow the prompts to set up your environment.\n
     "
     );
+
+    config_manager::reset();
 
     let token = user_input_handler("Please enter your GitHub Personal Access Token:");
     match secret_manager::set_personal_access_token(&token) {
@@ -42,6 +44,22 @@ Please follow the prompts to set up your environment.\n
         }
     };
 
+    let user_input_backup_frequency = user_input_handler(
+        "Please enter the frequency of the backup in minutes: (default is 30, use press enter to use the default value)",
+    );
+
+    if user_input_backup_frequency != "" {
+        let backup_frequency: u64 = match user_input_backup_frequency.parse() {
+            Ok(frequency) => frequency,
+            Err(_) => {
+                println!("Invalid input, use the default value 30");
+                30
+            }
+        };
+
+        config_manager::set_backup_frequency(backup_frequency);
+    }
+
     println!("Init is done! You can now use the add command to add the git repositories you want to watch.");
 }
 
@@ -50,7 +68,5 @@ fn user_input_handler(message: &str) -> String {
     io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
-    let input = input.trim_matches('\n').to_string();
-    println!("Your input: {}", input);
-    input
+    input.trim_matches('\n').to_string()
 }
