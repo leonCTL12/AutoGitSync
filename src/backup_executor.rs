@@ -69,6 +69,7 @@ impl BackupExecutor {
     }
 
     fn update_map(&mut self) {
+        self.map = HashMap::new();
         let config = config_manager::read_config();
 
         if config.watching_folders.is_empty() {
