@@ -18,5 +18,5 @@ Cargo.lock
 *.pdb
 
 .DS_Store
-
+GIT_AUTO_BACKUP
 # End of https://www.toptal.com/developers/gitignore/api/rust
