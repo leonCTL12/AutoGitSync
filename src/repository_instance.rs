@@ -1,3 +1,4 @@
+use crate::config_manager;
 use crate::utilities::file_system;
 use crate::{gitignore_wrapper::GitIgnoreWrapper, temp_clone_repo::TempCloneRepo};
 use chrono::{DateTime, Utc};
@@ -75,22 +76,29 @@ impl RepositoryInstance {
 
     fn should_perform_backup(&self) -> bool {
         if !self.dirty {
+            println!("{} is not dirty", self.repo_path);
             return false;
         }
 
-        let config = crate::config_manager::read_config();
-        println!(
-            "Change detection buffer = {}",
-            config.change_detection_buffer
-        );
+        let config = config_manager::read_config();
+
         match self.last_update_time {
             None => false,
             Some(last_update_time) => {
                 let current_time = Utc::now();
+
                 let duration = current_time
                     .signed_duration_since(last_update_time)
-                    .num_minutes(); //this is second for testing purpose, it should be minutes instead
-                duration >= config.change_detection_buffer as i64
+                    .num_seconds();
+
+                let change_detection_buffer = if cfg!(debug_assertions) {
+                    5
+                } else {
+                    config.change_detection_buffer * 60
+                } as i64;
+                println!("Duration = {}", duration);
+                println!("Change detection buffer = {}", change_detection_buffer);
+                duration >= change_detection_buffer
             }
         }
     }

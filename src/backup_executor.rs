@@ -1,5 +1,6 @@
 use crate::file_change_watcher::FileChangeSignal;
 use crate::repository_instance::RepositoryInstance;
+use crate::utilities::notification_service;
 use crate::{config_manager, file_change_watcher};
 use chrono::Local;
 use std::collections::{hash_map::Entry::Vacant, HashMap};
@@ -69,7 +70,7 @@ impl BackupExecutor {
     }
 
     fn update_map(&mut self) {
-        self.map = HashMap::new();
+        // self.map = HashMap::new();
         let config = config_manager::read_config();
 
         if config.watching_folders.is_empty() {
@@ -79,7 +80,6 @@ impl BackupExecutor {
             return;
         }
 
-        //TODO: one more case to handle: removing the folder from the watch list
         for folder in config.watching_folders {
             //Map.entry returns Vacant or Occupied
             if let Vacant(_) = self.map.entry(folder.clone()) {
@@ -102,7 +102,10 @@ impl BackupExecutor {
             match repo_instance.try_perform_backup() {
                 Ok(_) => {}
                 Err(e) => {
-                    println!("Failed to perform backup: {}", e);
+                    notification_service::show_notification(
+                        "Failed to perform backup".to_string(),
+                        format!("{}", e),
+                    );
                 }
             }
         }
