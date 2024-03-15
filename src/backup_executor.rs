@@ -41,7 +41,12 @@ impl BackupExecutor {
             }
 
             self.update_map();
-            self.backup_check();
+
+            if !self.map.is_empty() {
+                self.backup_check();
+            } else {
+                println!("No repository to watch");
+            }
 
             let backup_frequency = if cfg!(debug_assertions) {
                 5
@@ -70,17 +75,9 @@ impl BackupExecutor {
     }
 
     fn update_map(&mut self) {
-        // self.map = HashMap::new();
         let config = config_manager::read_config();
 
-        if config.watching_folders.is_empty() {
-            println!(
-                "No folder is being watched, please use the watch command to add a folder to watch"
-            );
-            return;
-        }
-
-        for folder in config.watching_folders {
+        for folder in &config.watching_folders {
             //Map.entry returns Vacant or Occupied
             if let Vacant(_) = self.map.entry(folder.clone()) {
                 let repo_instance = match RepositoryInstance::new(&folder) {
@@ -90,9 +87,12 @@ impl BackupExecutor {
                         continue;
                     }
                 };
-                self.map.insert(folder, repo_instance);
+                self.map.insert(folder.clone(), repo_instance);
             }
         }
+
+        self.map
+            .retain(|key, _| config.watching_folders.contains(key));
     }
     //Trade-off noted: this is not a pure function, yet it prevents cloning the map
     fn backup_check(&mut self) {
