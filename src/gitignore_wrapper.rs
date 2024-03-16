@@ -13,12 +13,7 @@ impl GitIgnoreWrapper {
     pub fn new(repo_path: PathBuf) -> GitIgnoreWrapper {
         println!("Repo path: {}", repo_path.display());
         let ignore: Gitignore<PathBuf> = Gitignore::new(repo_path.clone(), true, true);
-        let ignored_pattern = match extract_rules_from_gitignore(&repo_path) {
-            Ok(ignored_pattern) => ignored_pattern,
-            Err(e) => {
-                panic!("Failed to extract rules from .gitignore: {}", e);
-            }
-        };
+        let ignored_pattern = extract_rules_from_gitignore(&repo_path);
 
         GitIgnoreWrapper {
             gitignore: ignore,
@@ -34,12 +29,12 @@ impl GitIgnoreWrapper {
     }
 }
 
-fn extract_rules_from_gitignore(repo_path: &Path) -> Result<Vec<String>, String> {
+fn extract_rules_from_gitignore(repo_path: &Path) -> Vec<String> {
     let file = match File::open(repo_path.join(".gitignore")) {
         Ok(file) => file,
         Err(_) => {
             println!("No .gitignore found in {}", repo_path.display());
-            return Ok(Vec::new());
+            return Vec::new();
         }
     };
     let reader = io::BufReader::new(file);
@@ -56,5 +51,5 @@ fn extract_rules_from_gitignore(repo_path: &Path) -> Result<Vec<String>, String>
         })
         .collect();
 
-    Ok(lines)
+    lines
 }
