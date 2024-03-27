@@ -1,7 +1,9 @@
 use crate::config_manager;
 use chrono::{DateTime, Utc};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
-use std::path::Path;
+use std::collections::HashSet;
+use std::hash::Hash;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc::Sender;
 use std::thread;
 use std::time::Duration;
@@ -32,11 +34,22 @@ fn create_file_watcher(
     })
 }
 
-fn watch_directories(watcher: &mut RecommendedWatcher) -> notify::Result<()> {
+fn update_watching_repo(
+    watcher: &mut RecommendedWatcher,
+    previous_watching_folder: &mut HashSet<String>,
+) -> notify::Result<()> {
     let config = config_manager::read_config();
-    for folder in config.watching_folders {
+    let current_watching_folder = config.watching_folders.iter().cloned().collect();
+
+    for folder in previous_watching_folder.difference(&current_watching_folder) {
+        watcher.unwatch(Path::new(&folder))?;
+    }
+
+    for folder in current_watching_folder.difference(&previous_watching_folder) {
         watcher.watch(Path::new(&folder), RecursiveMode::Recursive)?;
     }
+
+    *previous_watching_folder = current_watching_folder;
     Ok(())
 }
 
@@ -66,9 +79,9 @@ pub fn start(tx: Sender<FileChangeSignal>) {
                 return;
             }
         };
-
+        let mut watched_folder: HashSet<String> = HashSet::new();
         loop {
-            if let Err(e) = watch_directories(&mut watcher) {
+            if let Err(e) = update_watching_repo(&mut watcher, &mut watched_folder) {
                 println!("watch repository failed");
                 println!("Error: {:?}", e);
                 return;
