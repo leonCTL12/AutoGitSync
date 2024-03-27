@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'code_auto_back_uper'",
+            "name": "Debug executable 'commitpal'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=code_auto_back_uper",
-                    "--package=code_auto_back_uper"
+                    "--bin=commitpal",
+                    "--package=commitpal"
                 ],
                 "filter": {
-                    "name": "code_auto_back_uper",
+                    "name": "commitpal",
                     "kind": "bin"
                 }
             },
@@ -27,16 +27,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'code_auto_back_uper'",
+            "name": "Debug unit tests in executable 'commitpal'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=code_auto_back_uper",
-                    "--package=code_auto_back_uper"
+                    "--bin=commitpal",
+                    "--package=commitpal"
                 ],
                 "filter": {
-                    "name": "code_auto_back_uper",
+                    "name": "commitpal",
                     "kind": "bin"
                 }
             },
