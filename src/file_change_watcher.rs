@@ -53,7 +53,6 @@ fn on_file_change_event(event: Event, tx: Sender<FileChangeSignal>) {
 
     let signal = FileChangeSignal::new(paths, Utc::now());
 
-    //TODO: create a new file change signal!
     tx.send(signal).unwrap();
 }
 
@@ -68,13 +67,12 @@ pub fn start(tx: Sender<FileChangeSignal>) {
             }
         };
 
-        if let Err(e) = watch_directories(&mut watcher) {
-            println!("start watcher failed");
-            println!("Error: {:?}", e);
-            return;
-        }
-
         loop {
+            if let Err(e) = watch_directories(&mut watcher) {
+                println!("watch repository failed");
+                println!("Error: {:?}", e);
+                return;
+            }
             std::thread::sleep(Duration::from_millis(5000));
         }
     });
