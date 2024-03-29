@@ -26,7 +26,7 @@ Please follow the prompts to set up your environment.\n
     config_manager::reset();
 
     let token = user_input_handler("Please enter your GitHub Personal Access Token:");
-    if token == "" {
+    if token.is_empty() {
         println!(
             "Personal access token cannot be empty.\nAbort init, please run init command to retry"
         );
@@ -45,7 +45,7 @@ Please follow the prompts to set up your environment.\n
         .trim_matches('\'')
         .trim_matches('\"')
         .to_string();
-    if ssh_key_path == "" {
+    if ssh_key_path.is_empty() {
         println!("Ssh key path can't be empty.\nAbort init, please run init command to retry");
         return;
     }
@@ -66,7 +66,7 @@ Please follow the prompts to set up your environment.\n
         "Please enter the frequency of the backup in minutes: (default is 30, use press enter to use the default value)",
     );
 
-    if user_input_backup_frequency != "" {
+    if !user_input_backup_frequency.is_empty() {
         let backup_frequency: u64 = match user_input_backup_frequency.parse() {
             Ok(frequency) => frequency,
             Err(_) => {

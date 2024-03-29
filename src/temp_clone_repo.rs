@@ -80,7 +80,7 @@ impl TempCloneRepo {
         //Repository::open will lock the clone temp folder
         //In windowsos, it will cause the remove_dir_all to fail
         //But it is fine on macos
-        let _ = std::mem::drop(self.repo);
+        std::mem::drop(self.repo);
         println!("About to remove {}", &self.path);
         std::fs::remove_dir_all(&self.path)
     }

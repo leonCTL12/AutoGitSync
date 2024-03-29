@@ -80,7 +80,7 @@ impl BackupExecutor {
         for folder in &config.watching_folders {
             //Map.entry returns Vacant or Occupied
             if let Vacant(_) = self.map.entry(folder.clone()) {
-                let repo_instance = match RepositoryInstance::new(&folder) {
+                let repo_instance = match RepositoryInstance::new(folder) {
                     Ok(repo) => repo,
                     Err(_) => {
                         println!("Error creating repository instance for {}", folder);

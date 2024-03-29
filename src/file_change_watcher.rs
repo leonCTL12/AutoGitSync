@@ -2,8 +2,7 @@ use crate::config_manager;
 use chrono::{DateTime, Utc};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::HashSet;
-use std::hash::Hash;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::mpsc::Sender;
 use std::thread;
 use std::time::Duration;
@@ -45,7 +44,7 @@ fn update_watching_repo(
         watcher.unwatch(Path::new(&folder))?;
     }
 
-    for folder in current_watching_folder.difference(&previous_watching_folder) {
+    for folder in current_watching_folder.difference(previous_watching_folder) {
         watcher.watch(Path::new(&folder), RecursiveMode::Recursive)?;
     }
 
