@@ -81,6 +81,18 @@ pub fn set_change_buffer_time(buffer_time: u64) {
     }
 }
 
+pub fn set_inited() {
+    let mut config = read_config();
+    config.is_inited = true;
+    if let Err(e) = write_config(config) {
+        panic!("Failed to set inited: {}", e);
+    }
+}
+
+pub fn get_inited() -> bool {
+    read_config().is_inited
+}
+
 //Read-only, by the executor
 pub fn read_config() -> Config {
     //Step 1: Get Config Path for different os

@@ -78,6 +78,8 @@ Please follow the prompts to set up your environment.\n
         config_manager::set_backup_frequency(backup_frequency);
     }
 
+    config_manager::set_inited();
+
     println!("Init is done! You can now use the add command to add the git repositories you want to watch.");
 }
 

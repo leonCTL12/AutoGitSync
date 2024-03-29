@@ -114,6 +114,10 @@ fn main() {
                 println!("Another instance is already running.");
                 return;
             }
+            if !config_manager::get_inited() {
+                println!("The tool is not initialized yet. Please run init command first.");
+                return;
+            }
             println!("Start to periodically backup the watched folders");
             backup_executor::BackupExecutor::new().start();
         }

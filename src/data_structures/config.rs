@@ -10,6 +10,7 @@ pub struct Config {
     pub watching_folders: HashSet<String>,
     pub backup_frequency: u64,
     pub change_detection_buffer: u64,
+    pub is_inited: bool,
 }
 
 impl Config {
@@ -18,6 +19,7 @@ impl Config {
             watching_folders: HashSet::new(),
             backup_frequency: DEFAULT_BACKUP_FREQUENCY,
             change_detection_buffer: DEFAULT_CHANGE_DETECTION_BUFFER,
+            is_inited: false,
         }
     }
 
