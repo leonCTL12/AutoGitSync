@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-const APP_NAME: &str = "AutoGitSync";
+const APP_NAME: &str = "CommitPal";
 const CONFIG_FILE_NAME: &str = "config.json";
 
 #[cfg(target_os = "windows")]
