@@ -13,7 +13,7 @@ use structopt::StructOpt;
 use utilities::notification_service;
 use utilities::{file_system, secret_manager};
 
-const APP_NAME: &str = "GIT_AUTO_BACKUP";
+const APP_NAME: &str = "CommitPal";
 #[derive(StructOpt)]
 struct Cli {
     #[structopt(subcommand)]
