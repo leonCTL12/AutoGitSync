@@ -70,7 +70,7 @@ Please follow the prompts to set up your environment.\n
         let backup_frequency: u64 = match user_input_backup_frequency.parse() {
             Ok(frequency) => frequency,
             Err(_) => {
-                println!("Invalid input, use the default value 30");
+                println!("Default value will be used");
                 30
             }
         };
