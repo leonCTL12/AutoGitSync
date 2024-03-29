@@ -10,6 +10,7 @@ mod tool_initialiser;
 mod utilities;
 use single_instance::SingleInstance;
 use structopt::StructOpt;
+use utilities::notification_service;
 use utilities::{file_system, secret_manager};
 
 const APP_NAME: &str = "GIT_AUTO_BACKUP";
@@ -115,6 +116,10 @@ fn main() {
                 return;
             }
             if !config_manager::get_inited() {
+                notification_service::show_notification(
+                    "Error: Not Initialised".to_string(),
+                    "Please run the init command before running the tool\nAborting...".to_string(),
+                );
                 println!("The tool is not initialized yet. Please run init command first.");
                 return;
             }
