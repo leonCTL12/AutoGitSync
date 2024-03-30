@@ -10,12 +10,8 @@ If there are any bugs, please post an issue.
 Disclaimer: This is a personal project, so it may not be very stable. Please use it with caution!
 
 ## Documentation
-Detailed documentation is available on Notion:
-- [Getting Started](https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley)
-- Installation Guide
-- User Guide
-- API Reference
-- Contributing
+Detailed documentation is available on [Notion] (https://grizzly-scowl-e3d.notion.site/CommitPal-Documentations-88e886d15d2c4e29a8ec4626e7b2db16?pvs=4).
+
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
