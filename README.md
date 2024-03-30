@@ -14,5 +14,3 @@ Detailed documentation is available on [Notion](https://grizzly-scowl-e3d.notion
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
-
-[Notion]: (https://grizzly-scowl-e3d.notion.site/CommitPal-Documentations-88e886d15d2c4e29a8ec4626e7b2db16?pvs=4)
