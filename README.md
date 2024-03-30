@@ -1,90 +1,21 @@
-<h1 align="center">AutoGitSync</h1>
+# CommitPal
 
-<p align="center">
-  <img alt="Github top language" src="https://img.shields.io/github/languages/top/leonCTL12/autogitsync?color=56BEB8">
+## Overview
+Have you ever encountered this problem? After a long day of working from home on your personal laptop, you return to the office the next morning and realize… you forgot to commit and push your code. It’s happened to me… a lot.
 
-  <img alt="Github language count" src="https://img.shields.io/github/languages/count/leonCTL12/autogitsync?color=56BEB8">
+This tool will periodically commit and push your code to your repository, acting as a backup. It will branch out from the current branch and will not interfere with your working branch.
 
-  <img alt="Repository size" src="https://img.shields.io/github/repo-size/leonCTL12/autogitsync?color=56BEB8">
+If there are any bugs, please post an issue.
 
-  <img alt="License" src="https://img.shields.io/github/license/leonCTL12/autogitsync?color=56BEB8">
+Disclaimer: This is a personal project, so it may not be very stable. Please use it with caution!
 
-  <!-- <img alt="Github issues" src="https://img.shields.io/github/issues/leonCTL12/autogitsync?color=56BEB8" /> -->
+## Documentation
+Detailed documentation is available on Notion:
+- [Getting Started](https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley)
+- Installation Guide
+- User Guide
+- API Reference
+- Contributing
 
-  <!-- <img alt="Github forks" src="https://img.shields.io/github/forks/leonCTL12/autogitsync?color=56BEB8" /> -->
-
-  <!-- <img alt="Github stars" src="https://img.shields.io/github/stars/leonCTL12/autogitsync?color=56BEB8" /> -->
-</p>
-
-<!-- Status -->
-
-<!-- <h4 align="center"> 
-	🚧  AutoGitSync 🚀 Under construction...  🚧
-</h4> 
-
-<hr> -->
-
-<p align="center">
-  <a href="#dart-about">About</a> &#xa0; | &#xa0; 
-  <a href="#sparkles-features">Features</a> &#xa0; | &#xa0;
-  <a href="#rocket-technologies">Technologies</a> &#xa0; | &#xa0;
-  <a href="#white_check_mark-requirements">Requirements</a> &#xa0; | &#xa0;
-  <a href="#checkered_flag-starting">Starting</a> &#xa0; | &#xa0;
-  <a href="#memo-license">License</a> &#xa0; | &#xa0;
-  <a href="https://github.com/leonCTL12" target="_blank">Author</a>
-</p>
-
-<br>
-
-## :dart: About ##
-
-Describe your project
-
-## :sparkles: Features ##
-
-:heavy_check_mark: Feature 1;\
-:heavy_check_mark: Feature 2;\
-:heavy_check_mark: Feature 3;
-
-## :rocket: Technologies ##
-
-The following tools were used in this project:
-
-- [Expo](https://expo.io/)
-- [Node.js](https://nodejs.org/en/)
-- [React](https://pt-br.reactjs.org/)
-- [React Native](https://reactnative.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
-
-## :white_check_mark: Requirements ##
-
-Before starting :checkered_flag:, you need to have [Git](https://git-scm.com) and [Node](https://nodejs.org/en/) installed.
-
-## :checkered_flag: Starting ##
-
-```bash
-# Clone this project
-$ git clone https://github.com/leonCTL12/autogitsync
-
-# Access
-$ cd autogitsync
-
-# Install dependencies
-$ yarn
-
-# Run the project
-$ yarn start
-
-# The server will initialize in the <http://localhost:3000>
-```
-
-## :memo: License ##
-
-This project is under license from MIT. For more details, see the [LICENSE](LICENSE.md) file.
-
-
-Made with :heart: by <a href="https://github.com/leonCTL12" target="_blank">Leon Chan</a>
-
-&#xa0;
-
-<a href="#top">Back to top</a>
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
