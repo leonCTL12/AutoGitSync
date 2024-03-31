@@ -5,7 +5,10 @@ use crate::{
     utilities::{file_system, secret_manager},
 };
 
+const SKIP_KEY: &str = "SKIP";
+
 pub fn init() {
+    let mut auth_count = 0;
     println!(
         r"
          ___                                    _    ___           _   
@@ -25,42 +28,19 @@ Please follow the prompts to set up your environment.\n
 
     config_manager::reset();
 
-    let token = user_input_handler("Please enter your GitHub Personal Access Token:");
-    if token.is_empty() {
-        println!(
-            "Personal access token cannot be empty.\nAbort init, please run init command to retry"
-        );
+    let pat_result = set_personal_access_token();
+    if pat_result.is_err() {
         return;
-    }
-    match secret_manager::set_personal_access_token(&token) {
-        Ok(_) => println!("Personal Access Token is stored successfully!"),
-        Err(e) => {
-            println!("Failed to store the personal access token: {} \nAbort init, please run init command to retry", e);
-            return;
-        }
-    };
-
-    let ssh_key_path = user_input_handler("Please enter your ssh private key path:")
-        .trim()
-        .trim_matches('\'')
-        .trim_matches('\"')
-        .to_string();
-    if ssh_key_path.is_empty() {
-        println!("Ssh key path can't be empty.\nAbort init, please run init command to retry");
-        return;
-    }
-    if !file_system::is_path_exist(&ssh_key_path) {
-        println!("The ssh private key path does not exist.\nAbort init, please run init command to retry");
-        return;
+    } else if pat_result.unwrap() {
+        auth_count += 1;
     }
 
-    match secret_manager::set_ssh_key_path(&ssh_key_path) {
-        Ok(_) => println!("SSH private key path is stored successfully!"),
-        Err(e) => {
-            println!("Failed to store the ssh private key path: {} \nAbort init, please run init command to retry", e);
-            return;
-        }
-    };
+    let ssh_result = set_ssh_path();
+    if ssh_result.is_err() {
+        return;
+    } else if ssh_result.unwrap() {
+        auth_count += 1;
+    }
 
     let user_input_backup_frequency = user_input_handler(
         "Please enter the frequency of the backup in minutes: (default is 30, use press enter to use the default value)",
@@ -78,9 +58,68 @@ Please follow the prompts to set up your environment.\n
         config_manager::set_backup_frequency(backup_frequency);
     }
 
+    if auth_count < 1 {
+        println!("No authentication information is provided. Please provide at least one authentication information.\nAbort init, please run init command to retry");
+        return;
+    }
+
     config_manager::set_inited();
 
     println!("Init is done! You can now use the add command to add the git repositories you want to watch.");
+}
+
+fn set_personal_access_token() -> Result<bool, ()> {
+    let token = user_input_handler("Please enter your GitHub Personal Access Token:");
+
+    match token {
+        token if token == SKIP_KEY => {
+            println!("Skipped setting up personal access token.");
+            Ok(false)
+        }
+        token if token.is_empty() => {
+            println!("Personal Access Token cannot be empty.\nAbort init, please run init command to retry");
+            Err(())
+        }
+        _ => match secret_manager::set_personal_access_token(&token) {
+            Ok(_) => {
+                println!("Personal Access Token is stored successfully!");
+                Ok(true)
+            }
+            Err(e) => {
+                println!("Failed to store the personal access token: {} \nAbort init, please run init command to retry", e);
+                Err(())
+            }
+        },
+    }
+}
+
+fn set_ssh_path() -> Result<bool, ()> {
+    let ssh_key_path = user_input_handler("Please enter your ssh private key path:")
+        .trim()
+        .trim_matches('\'')
+        .trim_matches('\"')
+        .to_string();
+
+    match ssh_key_path {
+        ssh_key_path if ssh_key_path == SKIP_KEY => {
+            println!("Skipped setting up ssh private key path.");
+            Ok(false)
+        }
+        ssh_key_path if !file_system::is_path_exist(&ssh_key_path) => {
+            println!("The ssh private key path does not exist.\nAbort init, please run init command to retry");
+            Err(())
+        }
+        _ => match secret_manager::set_ssh_key_path(&ssh_key_path) {
+            Ok(_) => {
+                println!("SSH private key path is stored successfully!");
+                Ok(true)
+            }
+            Err(e) => {
+                println!("Failed to store the ssh private key path: {} \nAbort init, please run init command to retry", e);
+                Err(())
+            }
+        },
+    }
 }
 
 fn user_input_handler(message: &str) -> String {
