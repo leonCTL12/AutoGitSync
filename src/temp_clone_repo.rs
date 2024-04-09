@@ -54,6 +54,13 @@ impl TempCloneRepo {
 
     pub fn perform_backup(&mut self) -> Result<(), git2::Error> {
         //Keep the reference of the current branch
+        let has_local_change = git2_api_wrapper::has_local_changes(&self.repo)?;
+
+        if !has_local_change {
+            println!("No local changes, no need to perform backup");
+            return Ok(());
+        }
+
         let current_branch = git2_api_wrapper::get_current_branch_name(&self.repo)?;
 
         let backup_branch_name = backup_executor::get_back_up_branch_name(&current_branch);

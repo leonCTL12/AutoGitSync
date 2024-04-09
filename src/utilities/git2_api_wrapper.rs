@@ -1,4 +1,6 @@
-use git2::{BranchType, Cred, PushOptions, RemoteCallbacks, Repository, ResetType, Signature};
+use git2::{
+    BranchType, Cred, PushOptions, RemoteCallbacks, Repository, ResetType, Signature, StatusOptions,
+};
 
 use crate::utilities::secret_manager;
 
@@ -38,6 +40,27 @@ pub fn checkout_to_branch(repo: &Repository, branch_name: &str) -> Result<(), gi
     repo.checkout_tree(&obj, None)?;
     repo.set_head(&format!("refs/heads/{}", branch_name))?;
     Ok(())
+}
+
+pub fn has_local_changes(repo: &Repository) -> Result<bool, git2::Error> {
+    let mut options = StatusOptions::new();
+    options.include_untracked(true).recurse_untracked_dirs(true);
+    let statuses = repo.statuses(Some(&mut options))?;
+
+    for entry in statuses.iter() {
+        let status = entry.status();
+
+        if status.is_wt_new()
+            || status.is_wt_modified()
+            || status.is_wt_deleted()
+            || status.is_wt_renamed()
+            || status.is_wt_typechange()
+        {
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
 }
 
 //This function will try to apply stash and abort if there is any conflict
